@@ -1,8 +1,8 @@
-# MOT Alert - MOT Reminder SaaS Platform
-
-A comprehensive MOT reminder service for drivers and white-label solution for garages. Built with Next.js, TypeScript, and modern web technologies.
+# MOT Alert - MOT Reminder Service
 
 **🎨 Custom Branding**: Features a distinctive orange smartphone logo with "MOT Alert" branding.
+
+**🚀 Latest Update**: Deployment troubleshooting - checking for build errors.
 
 ## 🚀 Features
 
