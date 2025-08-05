@@ -23,9 +23,9 @@ export async function POST(request) {
       make,
       model,
       year,
-      motDueDate,
-      taxDueDate,
-      insuranceDueDate
+      mot_due_date: motDueDate,
+      tax_due_date: taxDueDate,
+      insurance_due_date: insuranceDueDate
     });
 
     return NextResponse.json({
