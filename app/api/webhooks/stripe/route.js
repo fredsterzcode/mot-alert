@@ -14,6 +14,15 @@ export async function POST(request) {
       );
     }
 
+    // Check if Stripe is configured
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error('Stripe not configured for webhooks');
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      );
+    }
+
     // Verify webhook signature
     const event = verifyWebhookSignature(
       body,
