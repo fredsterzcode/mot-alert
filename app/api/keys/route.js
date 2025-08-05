@@ -34,6 +34,15 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('API key creation error:', error);
+    
+    // Handle authentication errors
+    if (error.status === 401) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create API key', details: error.message },
       { status: 500 }
@@ -72,6 +81,15 @@ export async function GET(request) {
 
   } catch (error) {
     console.error('API key retrieval error:', error);
+    
+    // Handle authentication errors
+    if (error.status === 401) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to get API keys', details: error.message },
       { status: 500 }
@@ -112,6 +130,15 @@ export async function DELETE(request) {
 
   } catch (error) {
     console.error('API key revocation error:', error);
+    
+    // Handle authentication errors
+    if (error.status === 401) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to revoke API key', details: error.message },
       { status: 500 }
