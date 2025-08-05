@@ -17,16 +17,20 @@ export async function POST(request) {
     // Format registration (remove spaces, uppercase)
     const formattedRegistration = registration.replace(/\s/g, '').toUpperCase();
 
-    // Create vehicle
-    const vehicle = await createVehicle(userId, {
+    // Create vehicle with proper field mapping
+    const vehicleData = {
       registration: formattedRegistration,
       make,
       model,
-      year,
-      mot_due_date: motDueDate,
-      tax_due_date: taxDueDate,
-      insurance_due_date: insuranceDueDate
-    });
+      year
+    };
+    
+    // Only add date fields if they exist
+    if (motDueDate) vehicleData.mot_due_date = motDueDate;
+    if (taxDueDate) vehicleData.tax_due_date = taxDueDate;
+    if (insuranceDueDate) vehicleData.insurance_due_date = insuranceDueDate;
+    
+    const vehicle = await createVehicle(userId, vehicleData);
 
     return NextResponse.json({
       success: true,
