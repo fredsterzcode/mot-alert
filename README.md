@@ -2,6 +2,8 @@
 
 A comprehensive MOT reminder service for drivers and white-label solution for garages. Built with Next.js, TypeScript, and modern web technologies.
 
+**🎨 Custom Branding**: Features a distinctive orange smartphone logo with "MOT Alert" branding.
+
 ## 🚀 Features
 
 ### For Drivers
