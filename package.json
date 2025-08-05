@@ -1,0 +1,39 @@
+{
+  "name": "mot-alert",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.1.5",
+    "@hookform/resolvers": "^5.2.1",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vercel/postgres": "^0.10.0",
+    "@vonage/server-sdk": "^3.22.1",
+    "autoprefixer": "^10.4.20",
+    "next": "^15.4.5",
+    "postcss": "^8.5.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.2",
+    "resend": "^4.8.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "zod": "^3.23.8"
+  },
+  "keywords": [
+    "mot",
+    "reminders",
+    "saas",
+    "nextjs"
+  ],
+  "author": "MOT Alert Team",
+  "license": "MIT",
+  "description": "MOT Alert - Free and Premium MOT & Tax Reminders by Text or Email"
+}
