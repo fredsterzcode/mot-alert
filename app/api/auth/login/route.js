@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserByEmail } from '@/lib/database';
+import { getUserByEmail } from '@/lib/supabase';
 import { generateSessionToken } from '@/lib/auth';
 
 export async function POST(request) {

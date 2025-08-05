@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createUser, getUserByEmail, updateUser } from '@/lib/database';
+import { createUser, getUserByEmail, updateUser } from '@/lib/supabase';
 import { sendWelcomeEmail } from '@/lib/resend-email';
 
 export async function POST(request) {

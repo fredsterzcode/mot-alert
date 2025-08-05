@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createVehicle, getUserVehicles, getVehicleById, updateVehicle } from '@/lib/database';
+import { createVehicle, getUserVehicles, getVehicleById, updateVehicle } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth';
 
 export async function POST(request) {
