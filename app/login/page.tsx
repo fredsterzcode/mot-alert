@@ -54,6 +54,15 @@ export default function LoginPage() {
 
       if (result.success) {
         console.log('Login successful, redirecting to:', result.user.isPartner ? '/partner' : '/dashboard')
+        
+        // Store Supabase session tokens
+        if (result.session) {
+          localStorage.setItem('supabase.auth.token', result.session.accessToken)
+          if (result.session.refreshToken) {
+            localStorage.setItem('supabase.auth.refreshToken', result.session.refreshToken)
+          }
+        }
+        
         // Check if user is a partner
         if (result.user.isPartner) {
           window.location.href = '/partner'

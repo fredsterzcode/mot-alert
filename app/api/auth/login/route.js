@@ -65,7 +65,7 @@ export async function POST(request) {
       );
     }
 
-    if (!authData.user) {
+    if (!authData.user || !authData.session) {
       return NextResponse.json(
         { error: 'Login failed' },
         { status: 500 }
@@ -102,6 +102,10 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Login successful',
+      session: {
+        accessToken: authData.session.access_token,
+        refreshToken: authData.session.refresh_token
+      },
       user: {
         id: authData.user.id,
         email: authData.user.email,
