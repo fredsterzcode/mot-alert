@@ -53,7 +53,12 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [showAddVehicle, setShowAddVehicle] = useState(false)
-  const [newVehicle, setNewVehicle] = useState({ registration: '' })
+  const [newVehicle, setNewVehicle] = useState({ 
+    registration: '',
+    motDueDate: '',
+    taxDueDate: '',
+    insuranceDueDate: ''
+  })
   const [showAutoRenewalModal, setShowAutoRenewalModal] = useState(false)
   const [autoRenewalData, setAutoRenewalData] = useState({ addonId: null, autoRenew: false })
 
@@ -181,13 +186,16 @@ export default function DashboardPage() {
         body: JSON.stringify({
           userId: user.id,
           registration: newVehicle.registration.toUpperCase(),
+          motDueDate: newVehicle.motDueDate,
+          taxDueDate: newVehicle.taxDueDate,
+          insuranceDueDate: newVehicle.insuranceDueDate
         }),
       })
 
       const data = await response.json()
       
       if (data.success) {
-        setNewVehicle({ registration: '' })
+        setNewVehicle({ registration: '', motDueDate: '', taxDueDate: '', insuranceDueDate: '' })
         setShowAddVehicle(false)
         fetchVehicles(user.id)
       } else {
@@ -689,12 +697,48 @@ export default function DashboardPage() {
                       <input
                         type="text"
                         value={newVehicle.registration}
-                        onChange={(e) => setNewVehicle({ registration: e.target.value })}
+                        onChange={(e) => setNewVehicle({ ...newVehicle, registration: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors font-mono text-lg"
                         placeholder="AB12 CDE"
                       />
                     </div>
                     
+                                         <div className="space-y-4">
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           MOT Due Date
+                         </label>
+                         <input
+                           type="date"
+                           value={newVehicle.motDueDate}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, motDueDate: e.target.value })}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Tax Due Date
+                         </label>
+                         <input
+                           type="date"
+                           value={newVehicle.taxDueDate}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, taxDueDate: e.target.value })}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Insurance Due Date
+                         </label>
+                         <input
+                           type="date"
+                           value={newVehicle.insuranceDueDate}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, insuranceDueDate: e.target.value })}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                         />
+                       </div>
+                     </div>
+
                     <div className="flex space-x-3">
                       <button
                         onClick={() => setShowAddVehicle(false)}
