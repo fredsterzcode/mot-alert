@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
 // Lazy initialization of Supabase client
@@ -7,102 +8,51 @@ let supabase = null;
 const getSupabaseClient = () => {
   if (!supabase) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       console.warn('Supabase environment variables not configured');
       return null;
     }
     
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
   }
   return supabase;
 };
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('No authorization header found');
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-    
-    const token = authHeader.substring(7);
-    console.log('Token received, length:', token.length);
-    
+
     const supabaseClient = getSupabaseClient();
-    
     if (!supabaseClient) {
-      console.log('Supabase client not available');
       return NextResponse.json(
         { error: 'Database connection failed' },
         { status: 500 }
       );
     }
 
-    // Verify the token with Supabase
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error('Token verification error:', authError);
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    console.log('Auth user found:', { id: user.id, email: user.email });
-
-    // Get user details from database using email instead of ID
-    let { data: userData, error: userError } = await supabaseClient
+    // Get user details from database
+    const { data: userData, error } = await supabaseClient
       .from('users')
       .select('*')
-      .eq('email', user.email)
+      .eq('id', user.id)
       .single();
 
-    console.log('Database lookup result:', { userData: userData ? 'found' : 'not found', userError });
-
-    // If user doesn't exist in public.users, create them
-    if (userError && userError.code === 'PGRST116') {
-      console.log('User not found in public.users, creating...');
-      
-      const { data: newUser, error: createError } = await supabaseClient
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.name || user.email.split('@')[0],
-          is_verified: user.email_confirmed_at ? true : false,
-          is_premium: false,
-          is_partner: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Error creating user in public.users:', createError);
-        return NextResponse.json(
-          { error: 'Failed to create user profile' },
-          { status: 500 }
-        );
-      }
-
-      userData = newUser;
-      console.log('User created successfully:', userData);
-    } else if (userError) {
-      console.error('Error fetching user data:', userError);
+    if (error) {
+      console.error('Error fetching user data:', error);
       return NextResponse.json(
         { error: 'Failed to fetch user data' },
         { status: 500 }
       );
     }
-
-    console.log('Returning user data:', { id: userData.id, email: userData.email, name: userData.name });
 
     return NextResponse.json({
       success: true,
@@ -131,29 +81,9 @@ export async function GET(request) {
 // Update user profile
 export async function PUT(request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+    const user = await getCurrentUser(request);
     
-    const token = authHeader.substring(7);
-    const supabaseClient = getSupabaseClient();
-    
-    if (!supabaseClient) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
-    // Verify the token with Supabase
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      console.error('Token verification error:', authError);
+    if (!user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -179,19 +109,20 @@ export async function PUT(request) {
       );
     }
 
-    // Get user details from database to check if email is already taken
-    const { data: currentUser } = await supabaseClient
-      .from('users')
-      .select('id')
-      .eq('email', user.email)
-      .single();
-
     // Check if email is already taken by another user
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     const { data: existingUser } = await supabaseClient
       .from('users')
       .select('id')
       .eq('email', email)
-      .neq('id', currentUser.id)
+      .neq('id', user.id)
       .single();
 
     if (existingUser) {
@@ -201,7 +132,7 @@ export async function PUT(request) {
       );
     }
 
-    // Update user data using email
+    // Update user data
     const { data: updatedUser, error } = await supabaseClient
       .from('users')
       .update({
@@ -210,7 +141,7 @@ export async function PUT(request) {
         phone: phone ? phone.trim() : null,
         updated_at: new Date().toISOString()
       })
-      .eq('email', user.email)
+      .eq('id', user.id)
       .select()
       .single();
 
