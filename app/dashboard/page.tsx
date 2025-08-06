@@ -364,7 +364,7 @@ export default function DashboardPage() {
         'Priority support',
         'No ads'
       ]
-    } else if (subscription?.plan_type === 'PREMIUM') {
+    } else if (user?.isPremium || subscription?.plan_type === 'PREMIUM') {
       return [
         'SMS + Email reminders',
         'Up to 3 vehicles',
@@ -382,7 +382,7 @@ export default function DashboardPage() {
 
   const getVehicleLimit = () => {
     if (user?.isPartner) return 5
-    if (subscription?.plan_type === 'PREMIUM') return 3
+    if (user?.isPremium || subscription?.plan_type === 'PREMIUM') return 3
     return 1
   }
 
@@ -393,13 +393,13 @@ export default function DashboardPage() {
 
   const showUpgradeButton = () => {
     if (user?.isPartner) return false // Partners don't need to upgrade
-    if (subscription?.plan_type === 'PREMIUM') return false // Premium users don't need to upgrade
+    if (user?.isPremium || subscription?.plan_type === 'PREMIUM') return false // Premium users don't need to upgrade
     return true // Free users can upgrade to Premium
   }
 
   const showAddVehicleButton = () => {
     if (user?.isPartner) return true // Partners can always add vehicles
-    if (subscription?.plan_type === 'PREMIUM') return true // Premium users can always add vehicles
+    if (user?.isPremium || subscription?.plan_type === 'PREMIUM') return true // Premium users can always add vehicles
     return vehicles.length < 1 // Free users can add 1 vehicle
   }
 
@@ -743,7 +743,7 @@ export default function DashboardPage() {
                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                          />
                        </div>
-                       {(user?.isPartner || subscription?.plan_type === 'PREMIUM') && (
+                       {(user?.isPartner || user?.isPremium || subscription?.plan_type === 'PREMIUM') && (
                          <>
                            <div>
                              <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -780,7 +780,7 @@ export default function DashboardPage() {
                            </div>
                          </>
                        )}
-                       {!(user?.isPartner || subscription?.plan_type === 'PREMIUM') && (
+                       {!(user?.isPartner || user?.isPremium || subscription?.plan_type === 'PREMIUM') && (
                          <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
                            💡 <strong>Free Plan:</strong> You can only track MOT due dates. Upgrade to Premium to track tax and insurance due dates as well.
                          </div>

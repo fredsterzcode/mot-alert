@@ -57,7 +57,7 @@ export default function HomePage() {
                 Get Started Free
               </Link>
             </nav>
-            <MobileNav />
+            <MobileNav isLoggedIn={false} />
           </div>
         </div>
       </header>
