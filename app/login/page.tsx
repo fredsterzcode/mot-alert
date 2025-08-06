@@ -239,7 +239,7 @@ export default function LoginPage() {
               Free to use
             </div>
           </div>
-                </div>
+        </div>
       </div>
     </div>
   )
