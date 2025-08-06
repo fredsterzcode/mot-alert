@@ -23,6 +23,7 @@ export async function GET(request) {
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('No authorization header found');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -30,9 +31,12 @@ export async function GET(request) {
     }
     
     const token = authHeader.substring(7);
+    console.log('Token received, length:', token.length);
+    
     const supabaseClient = getSupabaseClient();
     
     if (!supabaseClient) {
+      console.log('Supabase client not available');
       return NextResponse.json(
         { error: 'Database connection failed' },
         { status: 500 }
@@ -50,20 +54,55 @@ export async function GET(request) {
       );
     }
 
+    console.log('Auth user found:', { id: user.id, email: user.email });
+
     // Get user details from database using email instead of ID
-    const { data: userData, error: userError } = await supabaseClient
+    let { data: userData, error: userError } = await supabaseClient
       .from('users')
       .select('*')
       .eq('email', user.email)
       .single();
 
-    if (userError) {
+    console.log('Database lookup result:', { userData: userData ? 'found' : 'not found', userError });
+
+    // If user doesn't exist in public.users, create them
+    if (userError && userError.code === 'PGRST116') {
+      console.log('User not found in public.users, creating...');
+      
+      const { data: newUser, error: createError } = await supabaseClient
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.name || user.email.split('@')[0],
+          is_verified: user.email_confirmed_at ? true : false,
+          is_premium: false,
+          is_partner: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating user in public.users:', createError);
+        return NextResponse.json(
+          { error: 'Failed to create user profile' },
+          { status: 500 }
+        );
+      }
+
+      userData = newUser;
+      console.log('User created successfully:', userData);
+    } else if (userError) {
       console.error('Error fetching user data:', userError);
       return NextResponse.json(
         { error: 'Failed to fetch user data' },
         { status: 500 }
       );
     }
+
+    console.log('Returning user data:', { id: userData.id, email: userData.email, name: userData.name });
 
     return NextResponse.json({
       success: true,
