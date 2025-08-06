@@ -10,6 +10,7 @@ export default function ConfirmPage() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  const [isPartner, setIsPartner] = useState(false)
 
   useEffect(() => {
     const handleConfirmation = async () => {
@@ -30,14 +31,50 @@ export default function ConfirmPage() {
           localStorage.setItem('supabase.auth.refreshToken', refreshToken)
         }
 
-        // Set success status
-        setStatus('success')
-        setMessage('Email confirmed successfully! You can now log in to your account.')
-        
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 3000)
+        // Check if user is a partner by fetching user data
+        try {
+          const userResponse = await fetch('/api/users/me', {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          })
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            
+            // Set partner status
+            setIsPartner(userData.user?.isPartner || false)
+            
+            // Set success status
+            setStatus('success')
+            setMessage('Email confirmed successfully! You can now log in to your account.')
+            
+            // Redirect to appropriate dashboard based on user type
+            setTimeout(() => {
+              if (userData.user?.isPartner) {
+                router.push('/partner')
+              } else {
+                router.push('/dashboard')
+              }
+            }, 3000)
+          } else {
+            // If we can't fetch user data, default to regular dashboard
+            setStatus('success')
+            setMessage('Email confirmed successfully! You can now log in to your account.')
+            
+            setTimeout(() => {
+              router.push('/dashboard')
+            }, 3000)
+          }
+        } catch (userError) {
+          // If there's an error fetching user data, default to regular dashboard
+          setStatus('success')
+          setMessage('Email confirmed successfully! You can now log in to your account.')
+          
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 3000)
+        }
 
       } catch (error) {
         console.error('Confirmation error:', error)
@@ -96,14 +133,14 @@ export default function ConfirmPage() {
                 <p className="text-gray-600 mb-6">{message}</p>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                   <p className="text-sm text-green-800">
-                    Redirecting you to your dashboard in a few seconds...
+                    Redirecting you to your {isPartner ? 'partner' : ''} dashboard in a few seconds...
                   </p>
                 </div>
                 <Link 
-                  href="/dashboard"
+                  href={isPartner ? "/partner" : "/dashboard"}
                   className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
                 >
-                  Go to Dashboard Now
+                  Go to {isPartner ? 'Partner' : ''} Dashboard Now
                 </Link>
               </>
             )}
