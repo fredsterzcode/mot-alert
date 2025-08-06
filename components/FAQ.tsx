@@ -35,6 +35,10 @@ const faqData: FAQItem[] = [
     answer: "Garage partners get the White-Label service for £49.99/month, which includes 100 vehicles free and £2.99 per additional vehicle. This includes custom branding and customer management tools."
   },
   {
+    question: "How does subscription cancellation work?",
+    answer: "When you cancel your subscription, you retain full premium access until the end of your current billing period. After that, you're automatically downgraded to the free tier. During your billing period, all scheduled reminders will be sent normally. After cancellation, SMS reminders stop but email reminders continue (free feature). No refunds are provided for partial months."
+  },
+  {
     question: "Is my data secure?",
     answer: "Yes, we use industry-standard encryption and never share your personal information with third parties. Your vehicle registration and contact details are stored securely."
   }
