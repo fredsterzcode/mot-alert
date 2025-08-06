@@ -48,12 +48,15 @@ export default function SignupPage() {
   const watchedUserType = watch('userType')
 
   const onSubmit = async (data: SignupForm) => {
+    console.log('Form submitted with data:', data)
     setIsLoading(true)
     setError('')
     
     try {
       // For free tier, create account with Supabase Auth
       if (data.userType === 'free') {
+        console.log('Creating free account...', data)
+        
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: {
@@ -69,11 +72,14 @@ export default function SignupPage() {
         })
 
         const result = await response.json()
+        console.log('Signup response:', result)
 
         if (result.success) {
+          console.log('Signup successful, showing confirmation step')
           // Show confirmation message instead of redirecting
           setCurrentStep(3) // Show confirmation step
         } else {
+          console.log('Signup failed:', result.error)
           setError(result.error || 'Signup failed')
         }
       } else {
@@ -105,6 +111,7 @@ export default function SignupPage() {
         }
       }
     } catch (err) {
+      console.error('Signup error:', err)
       setError('Signup failed. Please try again.')
     } finally {
       setIsLoading(false)
@@ -310,7 +317,7 @@ export default function SignupPage() {
 
               {/* Signup Form */}
               <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
                   {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                       <p className="text-red-800 text-sm">{error}</p>

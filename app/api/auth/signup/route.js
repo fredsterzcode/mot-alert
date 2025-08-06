@@ -48,7 +48,7 @@ export async function POST(request) {
           phone,
           user_type: userType
         },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://mot-alert.com'}/confirm`
+        emailRedirectTo: 'https://mot-alert.com/confirm'
       }
     });
 
@@ -69,7 +69,7 @@ export async function POST(request) {
 
     // Send welcome email
     try {
-      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/email`, {
+      const emailResponse = await fetch('https://mot-alert.com/api/email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
