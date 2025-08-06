@@ -45,282 +45,283 @@ export default function SubscriptionPage() {
             </p>
           </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Free Plan */}
-          <div className="card relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gray-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                Current Plan
-              </span>
-            </div>
-            
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-4">
-                £0<span className="text-lg text-gray-500">/month</span>
+          {/* Pricing Cards */}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Free Plan */}
+            <div className="card relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-gray-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                  Current Plan
+                </span>
               </div>
               
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Email reminders for MOT</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>1 vehicle</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Partner garage ads</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Basic dashboard</span>
-                </li>
-                <li className="flex items-center">
-                  <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-500">SMS reminders</span>
-                </li>
-                <li className="flex items-center">
-                  <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-500">Multiple vehicles</span>
-                </li>
-                <li className="flex items-center">
-                  <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-500">Custom schedules</span>
-                </li>
-                <li className="flex items-center">
-                  <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-500">Priority support</span>
-                </li>
-              </ul>
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-4">
+                  £0<span className="text-lg text-gray-500">/month</span>
+                </div>
+                
+                <ul className="space-y-3 mb-8 text-left">
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Email reminders for MOT</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>1 vehicle</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Partner garage ads</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Basic dashboard</span>
+                  </li>
+                  <li className="flex items-center">
+                    <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-500">SMS reminders</span>
+                  </li>
+                  <li className="flex items-center">
+                    <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-500">Multiple vehicles</span>
+                  </li>
+                  <li className="flex items-center">
+                    <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-500">Custom schedules</span>
+                  </li>
+                  <li className="flex items-center">
+                    <XMarkIcon className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-500">Priority support</span>
+                  </li>
+                </ul>
+                
+                <div className="bg-gray-100 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-gray-600">
+                    You're currently on the Free plan
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="card border-2 border-primary-500 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                  <StarIcon className="w-4 h-4 mr-1" />
+                  Most Popular
+                </span>
+              </div>
               
-              <div className="bg-gray-100 rounded-lg p-4 mb-6">
-                <p className="text-sm text-gray-600">
-                  You're currently on the Free plan
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  £1.99<span className="text-lg text-gray-500">/month</span>
+                </div>
+                <div className="text-sm text-secondary-600 mb-4">
+                  or £19.99/year (16% savings)
+                </div>
+                
+                <ul className="space-y-3 mb-8 text-left">
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>SMS + Email reminders</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Up to 3 vehicles</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Ad-free experience</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Custom schedules</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Priority support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Tax & insurance reminders</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Service due reminders</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Advanced analytics</span>
+                  </li>
+                </ul>
+                
+                <button 
+                  className="btn-primary w-full flex items-center justify-center mb-4"
+                  disabled
+                  title="Coming soon - Backend integration required"
+                >
+                  <CreditCardIcon className="w-4 h-4 mr-2" />
+                  Upgrade to Premium
+                </button>
+                <p className="text-xs text-gray-500">
+                  // TODO: Link to Stripe Checkout
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Premium Plan */}
-          <div className="card border-2 border-primary-500 relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
-                <StarIcon className="w-4 h-4 mr-1" />
-                Most Popular
-              </span>
-            </div>
+          {/* Features Comparison */}
+          <div className="card mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              Feature Comparison
+            </h2>
             
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-2">
-                £1.99<span className="text-lg text-gray-500">/month</span>
-              </div>
-              <div className="text-sm text-secondary-600 mb-4">
-                or £19.99/year (16% savings)
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Feature</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-900">Free</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-900">Premium</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Email Reminders</td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">SMS Reminders</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Number of Vehicles</td>
+                    <td className="py-3 px-4 text-center text-gray-900">1</td>
+                    <td className="py-3 px-4 text-center text-gray-900">Up to 3</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Ad-Free Experience</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Custom Schedules</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Priority Support</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 text-gray-900">Tax & Insurance Reminders</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* FAQ Section */}
+          <div className="card">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+              Frequently Asked Questions
+            </h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  How much does MOT Alert cost for drivers?
+                </h3>
+                <p className="text-gray-600">
+                  The Free tier offers email reminders for one vehicle with partner garage promotions. 
+                  The Premium tier (£1.99/month or £19.99/year) includes SMS and email reminders for 
+                  up to 3 vehicles, ad-free, with custom schedules and priority support.
+                </p>
               </div>
               
-              <ul className="space-y-3 mb-8 text-left">
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>SMS + Email reminders</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Up to 3 vehicles</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Ad-free experience</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Custom schedules</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Priority support</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Tax & insurance reminders</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Service due reminders</span>
-                </li>
-                <li className="flex items-center">
-                  <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                  <span>Advanced analytics</span>
-                </li>
-              </ul>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  What's the difference between Free and Premium tiers?
+                </h3>
+                <p className="text-gray-600">
+                  The Free tier provides email-only reminders for one vehicle with ads. 
+                  The Premium tier adds SMS reminders, supports up to 3 vehicles, and is ad-free 
+                  with customizable schedules.
+                </p>
+              </div>
               
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  How do I upgrade to Premium?
+                </h3>
+                <p className="text-gray-600">
+                  From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment (coming soon).
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Can I cancel my subscription anytime?
+                </h3>
+                <p className="text-gray-600">
+                  Yes, you can cancel your Premium subscription at any time. You'll continue to have access 
+                  until the end of your current billing period.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Section */}
+          <div className="text-center mt-8">
+            <p className="text-lg text-gray-600 mb-4">
+              Ready to upgrade? Get started with Premium today.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/dashboard" className="btn-secondary">
+                Back to Dashboard
+              </Link>
               <button 
-                className="btn-primary w-full flex items-center justify-center mb-4"
+                className="btn-primary"
                 disabled
                 title="Coming soon - Backend integration required"
               >
-                <CreditCardIcon className="w-4 h-4 mr-2" />
                 Upgrade to Premium
               </button>
-              <p className="text-xs text-gray-500">
-                // TODO: Link to Stripe Checkout
-              </p>
             </div>
-          </div>
-        </div>
-
-        {/* Features Comparison */}
-        <div className="card mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Feature Comparison
-          </h2>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Feature</th>
-                  <th className="text-center py-3 px-4 font-semibold text-gray-900">Free</th>
-                  <th className="text-center py-3 px-4 font-semibold text-gray-900">Premium</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Email Reminders</td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">SMS Reminders</td>
-                  <td className="py-3 px-4 text-center">
-                    <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Number of Vehicles</td>
-                  <td className="py-3 px-4 text-center text-gray-900">1</td>
-                  <td className="py-3 px-4 text-center text-gray-900">Up to 3</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Ad-Free Experience</td>
-                  <td className="py-3 px-4 text-center">
-                    <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Custom Schedules</td>
-                  <td className="py-3 px-4 text-center">
-                    <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Priority Support</td>
-                  <td className="py-3 px-4 text-center">
-                    <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-gray-900">Tax & Insurance Reminders</td>
-                  <td className="py-3 px-4 text-center">
-                    <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="card">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            Frequently Asked Questions
-          </h2>
-          
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                How much does MOT Alert cost for drivers?
-              </h3>
-              <p className="text-gray-600">
-                The Free tier offers email reminders for one vehicle with partner garage promotions. 
-                The Premium tier (£1.99/month or £19.99/year) includes SMS and email reminders for 
-                up to 3 vehicles, ad-free, with custom schedules and priority support.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What's the difference between Free and Premium tiers?
-              </h3>
-              <p className="text-gray-600">
-                The Free tier provides email-only reminders for one vehicle with ads. 
-                The Premium tier adds SMS reminders, supports up to 3 vehicles, and is ad-free 
-                with customizable schedules.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                How do I upgrade to Premium?
-              </h3>
-              <p className="text-gray-600">
-                From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment (coming soon).
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I cancel my subscription anytime?
-              </h3>
-              <p className="text-gray-600">
-                Yes, you can cancel your Premium subscription at any time. You'll continue to have access 
-                until the end of your current billing period.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="text-center mt-8">
-          <p className="text-lg text-gray-600 mb-4">
-            Ready to upgrade? Get started with Premium today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/dashboard" className="btn-secondary">
-              Back to Dashboard
-            </Link>
-            <button 
-              className="btn-primary"
-              disabled
-              title="Coming soon - Backend integration required"
-            >
-              Upgrade to Premium
-            </button>
           </div>
         </div>
       </div>
     </div>
   )
-}
+} 
