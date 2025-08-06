@@ -63,9 +63,24 @@ export default function DashboardPage() {
 
   const fetchUserData = async () => {
     try {
-      // Get user data
-      const userResponse = await fetch('/api/users/me')
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem('supabase.auth.token')
+      
+      if (!accessToken) {
+        console.log('No access token found, redirecting to login')
+        window.location.href = '/login'
+        return
+      }
+
+      // Get user data with authentication token
+      const userResponse = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      
       const userData = await userResponse.json()
+      console.log('User data response:', userData)
       
       if (userData.success) {
         setUser(userData.user)
@@ -80,6 +95,7 @@ export default function DashboardPage() {
         fetchVehicles(userData.user.id)
         fetchSubscription(userData.user.id)
       } else {
+        console.log('User data fetch failed:', userData.error)
         // Not authenticated, redirect to login
         window.location.href = '/login'
       }
@@ -93,7 +109,12 @@ export default function DashboardPage() {
 
   const fetchVehicles = async (userId: string) => {
     try {
-      const response = await fetch(`/api/vehicles?userId=${userId}`)
+      const accessToken = localStorage.getItem('supabase.auth.token')
+      const response = await fetch(`/api/vehicles?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
       const data = await response.json()
       
       if (data.success) {
@@ -106,12 +127,21 @@ export default function DashboardPage() {
 
   const fetchSubscription = async (userId: string) => {
     try {
-      const response = await fetch(`/api/subscriptions?userId=${userId}`)
+      const accessToken = localStorage.getItem('supabase.auth.token')
+      const response = await fetch(`/api/subscriptions?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
       const data = await response.json()
       
       if (data.success) {
         // Also fetch addons for this subscription
-        const addonsResponse = await fetch(`/api/subscriptions/${data.subscription.id}/addons`)
+        const addonsResponse = await fetch(`/api/subscriptions/${data.subscription.id}/addons`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        })
         const addonsData = await addonsResponse.json()
         
         setSubscription({
@@ -141,9 +171,13 @@ export default function DashboardPage() {
     }
 
     try {
+      const accessToken = localStorage.getItem('supabase.auth.token')
       const response = await fetch('/api/vehicles', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           userId: user.id,
           registration: newVehicle.registration.toUpperCase(),
@@ -169,8 +203,12 @@ export default function DashboardPage() {
     if (!confirm('Are you sure you want to delete this vehicle?')) return
 
     try {
+      const accessToken = localStorage.getItem('supabase.auth.token')
       const response = await fetch(`/api/vehicles/${vehicleId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
       })
 
       const data = await response.json()
@@ -188,9 +226,13 @@ export default function DashboardPage() {
 
   const handleAutoRenewalToggle = async (addonId: number, autoRenew: boolean) => {
     try {
+      const accessToken = localStorage.getItem('supabase.auth.token')
       const response = await fetch('/api/stripe/additional-vehicle', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           addonId,
           autoRenew
@@ -218,9 +260,13 @@ export default function DashboardPage() {
     if (!confirm(`Are you sure you want to cancel this ${cancelType}?`)) return
 
     try {
+      const accessToken = localStorage.getItem('supabase.auth.token')
       const response = await fetch('/api/subscriptions/cancel', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
         body: JSON.stringify({
           subscriptionId,
           addonId,
