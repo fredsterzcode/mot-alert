@@ -23,6 +23,8 @@ export async function POST(request) {
   try {
     const { email, password, name, phone, userType = 'free' } = await request.json();
 
+    console.log('Signup request:', { email, name, phone, userType });
+
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: 'Email, password, and name are required' },
@@ -52,6 +54,8 @@ export async function POST(request) {
       }
     });
 
+    console.log('Auth response:', { authData, authError });
+
     if (authError) {
       console.error('Auth signup error:', authError);
       return NextResponse.json(
@@ -65,6 +69,27 @@ export async function POST(request) {
         { error: 'Failed to create user account' },
         { status: 500 }
       );
+    }
+
+    // Check if the user was created in public.users table
+    try {
+      const { data: userData, error: userError } = await supabaseClient
+        .from('users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
+
+      console.log('User data check:', { userData, userError });
+
+      if (userError && userError.code !== 'PGRST116') {
+        console.error('Error checking user data:', userError);
+        return NextResponse.json(
+          { error: 'Database error saving new user', details: userError.message },
+          { status: 500 }
+        );
+      }
+    } catch (checkError) {
+      console.error('Error checking user data:', checkError);
     }
 
     // Send welcome email

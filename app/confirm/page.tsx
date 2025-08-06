@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
 function ConfirmPageContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const [isPartner, setIsPartner] = useState(false)
@@ -15,9 +14,14 @@ function ConfirmPageContent() {
   useEffect(() => {
     const handleConfirmation = async () => {
       try {
-        // Get the access token from URL params
-        const accessToken = searchParams.get('access_token')
-        const refreshToken = searchParams.get('refresh_token')
+        // Get tokens from URL fragment (Supabase sends them in #access_token=...)
+        const hash = window.location.hash.substring(1) // Remove the # symbol
+        const params = new URLSearchParams(hash)
+        
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+        
+        console.log('Tokens from URL:', { accessToken: accessToken ? 'present' : 'missing', refreshToken: refreshToken ? 'present' : 'missing' })
         
         if (!accessToken) {
           setStatus('error')
@@ -41,6 +45,7 @@ function ConfirmPageContent() {
           
           if (userResponse.ok) {
             const userData = await userResponse.json()
+            console.log('User data:', userData)
             
             // Set partner status
             setIsPartner(userData.user?.isPartner || false)
@@ -58,6 +63,7 @@ function ConfirmPageContent() {
               }
             }, 3000)
           } else {
+            console.log('User response not ok:', userResponse.status)
             // If we can't fetch user data, default to regular dashboard
             setStatus('success')
             setMessage('Email confirmed successfully! You can now log in to your account.')
@@ -67,6 +73,7 @@ function ConfirmPageContent() {
             }, 3000)
           }
         } catch (userError) {
+          console.error('Error fetching user data:', userError)
           // If there's an error fetching user data, default to regular dashboard
           setStatus('success')
           setMessage('Email confirmed successfully! You can now log in to your account.')
@@ -84,7 +91,7 @@ function ConfirmPageContent() {
     }
 
     handleConfirmation()
-  }, [searchParams, router])
+  }, [router])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
