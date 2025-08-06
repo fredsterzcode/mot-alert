@@ -3,10 +3,23 @@ import { createCustomer, createCheckoutSession } from '@/lib/stripe';
 import { getUserByEmail } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function POST(request) {
   try {
@@ -43,12 +56,20 @@ export async function POST(request) {
       );
     }
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Check if user exists
     let user = await getUserByEmail(email);
     
     // Create user if doesn't exist
     if (!user) {
-      const { data: newUser, error: userError } = await supabase
+      const { data: newUser, error: userError } = await supabaseClient
         .from('users')
         .insert({
           name,
@@ -72,7 +93,7 @@ export async function POST(request) {
 
       // If creating a partner, create partner record
       if (planType === 'whitelabel') {
-        const { error: partnerError } = await supabase
+        const { error: partnerError } = await supabaseClient
           .from('partners')
           .insert({
             user_id: user.id,
@@ -104,7 +125,7 @@ export async function POST(request) {
       customerId = customer.id;
       
       // Update user with Stripe customer ID
-      await supabase
+      await supabaseClient
         .from('users')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id);
