@@ -50,11 +50,11 @@ export async function GET(request) {
       );
     }
 
-    // Get user details from database
+    // Get user details from database using email instead of ID
     const { data: userData, error: userError } = await supabaseClient
       .from('users')
       .select('*')
-      .eq('id', user.id)
+      .eq('email', user.email)
       .single();
 
     if (userError) {
@@ -140,12 +140,19 @@ export async function PUT(request) {
       );
     }
 
+    // Get user details from database to check if email is already taken
+    const { data: currentUser } = await supabaseClient
+      .from('users')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
     // Check if email is already taken by another user
     const { data: existingUser } = await supabaseClient
       .from('users')
       .select('id')
       .eq('email', email)
-      .neq('id', user.id)
+      .neq('id', currentUser.id)
       .single();
 
     if (existingUser) {
@@ -155,7 +162,7 @@ export async function PUT(request) {
       );
     }
 
-    // Update user data
+    // Update user data using email
     const { data: updatedUser, error } = await supabaseClient
       .from('users')
       .update({
@@ -164,7 +171,7 @@ export async function PUT(request) {
         phone: phone ? phone.trim() : null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', user.id)
+      .eq('email', user.email)
       .select()
       .single();
 
