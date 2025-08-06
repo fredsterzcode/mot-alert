@@ -47,7 +47,8 @@ export async function POST(request) {
           name,
           phone,
           user_type: userType
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://mot-alert.com'}/confirm`
       }
     });
 

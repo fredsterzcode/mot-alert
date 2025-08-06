@@ -71,7 +71,8 @@ export default function SignupPage() {
         const result = await response.json()
 
         if (result.success) {
-          window.location.href = '/dashboard'
+          // Show confirmation message instead of redirecting
+          setCurrentStep(3) // Show confirmation step
         } else {
           setError(result.error || 'Signup failed')
         }
@@ -136,291 +137,337 @@ export default function SignupPage() {
 
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h1>
-            <p className="text-gray-600">Choose how you want to use MOT Alert</p>
-          </div>
-
-          {/* User Type Selection */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">I want to...</h2>
-            
-            <div className="grid md:grid-cols-3 gap-4">
-              {/* Free Tier */}
-              <label className={`relative cursor-pointer ${watchedUserType === 'free' ? 'ring-2 ring-orange-500' : ''}`}>
-                <input
-                  type="radio"
-                  value="free"
-                  {...register('userType')}
-                  className="sr-only"
-                />
-                <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-green-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Free MOT Reminders</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm">
-                    Get basic email reminders for my vehicle MOT
-                  </p>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Free email reminders
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      1 vehicle included
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Basic dashboard
-                    </div>
-                    <div className="text-lg font-bold text-green-600 mt-3">
-                      £0/month
-                    </div>
-                  </div>
+          {/* Confirmation Step */}
+          {currentStep === 3 && (
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-              </label>
-
-              {/* Premium */}
-              <label className={`relative cursor-pointer ${watchedUserType === 'premium' ? 'ring-2 ring-orange-500' : ''}`}>
-                <input
-                  type="radio"
-                  value="premium"
-                  {...register('userType')}
-                  className="sr-only"
-                />
-                <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-orange-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Premium Service</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm">
-                    Get SMS reminders and track multiple vehicles
-                  </p>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      SMS + Email reminders
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Up to 3 vehicles
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Priority support
-                    </div>
-                    <div className="text-lg font-bold text-orange-600 mt-3">
-                      £2.99/month
-                    </div>
-                  </div>
-                </div>
-              </label>
-
-              {/* Partner */}
-              <label className={`relative cursor-pointer ${watchedUserType === 'partner' ? 'ring-2 ring-orange-500' : ''}`}>
-                <input
-                  type="radio"
-                  value="partner"
-                  {...register('userType')}
-                  className="sr-only"
-                />
-                <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <BuildingOfficeIcon className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">White-Label Service</h3>
-                  </div>
-                  <p className="text-gray-600 text-sm">
-                    I'm a garage and want to offer MOT Alert to my customers
-                  </p>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      100 vehicles included free
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      £2.99 per additional vehicle
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      White-label branding
-                    </div>
-                    <div className="text-lg font-bold text-blue-600 mt-3">
-                      £49.99/month
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Signup Form */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 text-sm">{error}</p>
-                </div>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    {...register('name')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                    placeholder="Enter your full name"
-                  />
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    {...register('email')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                    placeholder="Enter your email"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                  )}
-                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email!</h2>
+                <p className="text-gray-600 mb-6">
+                  We've sent you a confirmation email. Please check your inbox and click the verification link to activate your account.
+                </p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    {...register('phone')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                    placeholder="Enter your phone number"
-                  />
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                    placeholder="Create a password"
-                  />
-                  {errors.password && (
-                    <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-                  )}
-                </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-blue-900 mb-2">📧 Don't see the email?</h3>
+                <ul className="text-sm text-blue-800 space-y-1 text-left">
+                  <li>• Check your spam/junk folder</li>
+                  <li>• Make sure you entered the correct email address</li>
+                  <li>• Wait a few minutes for the email to arrive</li>
+                </ul>
               </div>
 
-              {/* Partner-specific fields */}
-              {watchedUserType === 'partner' && (
-                <>
-                  <div>
-                    <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Name
-                    </label>
-                    <input
-                      id="companyName"
-                      type="text"
-                      {...register('companyName')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                      placeholder="Enter your company name"
-                    />
-                    {errors.companyName && (
-                      <p className="text-red-500 text-sm mt-1">{errors.companyName.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="companyDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                      Company Description
-                    </label>
-                    <textarea
-                      id="companyDescription"
-                      {...register('companyDescription')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                      placeholder="Brief description of your business"
-                    />
-                    {errors.companyDescription && (
-                      <p className="text-red-500 text-sm mt-1">{errors.companyDescription.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                      Website (Optional)
-                    </label>
-                    <input
-                      id="website"
-                      type="url"
-                      {...register('website')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                      placeholder="https://your-website.com"
-                    />
-                    {errors.website && (
-                      <p className="text-red-500 text-sm mt-1">{errors.website.message}</p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    {watchedUserType === 'free' ? 'Creating account...' : 'Setting up payment...'}
-                  </div>
-                ) : (
-                  <>
-                    {watchedUserType === 'free' ? 'Create Free Account' : 'Continue to Payment'}
-                    <ArrowRightIcon className="w-5 h-5 ml-2" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{' '}
-                <Link href="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
-                  Sign in
+              <div className="space-y-4">
+                <Link 
+                  href="/login"
+                  className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  Go to Login
                 </Link>
-              </p>
+                <button 
+                  onClick={() => setCurrentStep(1)}
+                  className="block w-full text-gray-600 hover:text-gray-800 font-medium py-2"
+                >
+                  ← Back to Signup
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Regular Signup Form */}
+          {currentStep !== 3 && (
+            <>
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h1>
+                <p className="text-gray-600">Choose how you want to use MOT Alert</p>
+              </div>
+
+              {/* User Type Selection */}
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">I want to...</h2>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  {/* Free Tier */}
+                  <label className={`relative cursor-pointer ${watchedUserType === 'free' ? 'ring-2 ring-orange-500' : ''}`}>
+                    <input
+                      type="radio"
+                      value="free"
+                      {...register('userType')}
+                      className="sr-only"
+                    />
+                    <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <UserIcon className="w-6 h-6 text-green-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900">Free MOT Reminders</h3>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Get basic email reminders for my vehicle MOT
+                      </p>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          Free email reminders
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          1 vehicle included
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          Basic dashboard
+                        </div>
+                        <div className="text-lg font-bold text-green-600 mt-3">
+                          £0/month
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Premium */}
+                  <label className={`relative cursor-pointer ${watchedUserType === 'premium' ? 'ring-2 ring-orange-500' : ''}`}>
+                    <input
+                      type="radio"
+                      value="premium"
+                      {...register('userType')}
+                      className="sr-only"
+                    />
+                    <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                          <UserIcon className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900">Premium Service</h3>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        Get SMS reminders and track multiple vehicles
+                      </p>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          SMS + Email reminders
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          Up to 3 vehicles
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          Priority support
+                        </div>
+                        <div className="text-lg font-bold text-orange-600 mt-3">
+                          £2.99/month
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Partner */}
+                  <label className={`relative cursor-pointer ${watchedUserType === 'partner' ? 'ring-2 ring-orange-500' : ''}`}>
+                    <input
+                      type="radio"
+                      value="partner"
+                      {...register('userType')}
+                      className="sr-only"
+                    />
+                    <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <BuildingOfficeIcon className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900">White-Label Service</h3>
+                      </div>
+                      <p className="text-gray-600 text-sm">
+                        I'm a garage and want to offer MOT Alert to my customers
+                      </p>
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          100 vehicles included free
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          £2.99 per additional vehicle
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                          White-label branding
+                        </div>
+                        <div className="text-lg font-bold text-blue-600 mt-3">
+                          £49.99/month
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Signup Form */}
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-red-800 text-sm">{error}</p>
+                    </div>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        id="name"
+                        type="text"
+                        {...register('name')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                        placeholder="Enter your full name"
+                      />
+                      {errors.name && (
+                        <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        {...register('email')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                        placeholder="Enter your email"
+                      />
+                      {errors.email && (
+                        <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        {...register('phone')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                        placeholder="Enter your phone number"
+                      />
+                      {errors.phone && (
+                        <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                      </label>
+                      <input
+                        id="password"
+                        type="password"
+                        {...register('password')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                        placeholder="Create a password"
+                      />
+                      {errors.password && (
+                        <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Partner-specific fields */}
+                  {watchedUserType === 'partner' && (
+                    <>
+                      <div>
+                        <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
+                          Company Name
+                        </label>
+                        <input
+                          id="companyName"
+                          type="text"
+                          {...register('companyName')}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                          placeholder="Enter your company name"
+                        />
+                        {errors.companyName && (
+                          <p className="text-red-500 text-sm mt-1">{errors.companyName.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label htmlFor="companyDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                          Company Description
+                        </label>
+                        <textarea
+                          id="companyDescription"
+                          {...register('companyDescription')}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                          placeholder="Brief description of your business"
+                        />
+                        {errors.companyDescription && (
+                          <p className="text-red-500 text-sm mt-1">{errors.companyDescription.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
+                          Website (Optional)
+                        </label>
+                        <input
+                          id="website"
+                          type="url"
+                          {...register('website')}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                          placeholder="https://your-website.com"
+                        />
+                        {errors.website && (
+                          <p className="text-red-500 text-sm mt-1">{errors.website.message}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        {watchedUserType === 'free' ? 'Creating account...' : 'Setting up payment...'}
+                      </div>
+                    ) : (
+                      <>
+                        {watchedUserType === 'free' ? 'Create Free Account' : 'Continue to Payment'}
+                        <ArrowRightIcon className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600">
+                    Already have an account?{' '}
+                    <Link href="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
+                      Sign in
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
