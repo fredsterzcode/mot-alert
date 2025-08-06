@@ -319,7 +319,7 @@ export default function SubscriptionPage() {
               Upgrade to Premium
             </button>
           </div>
-        </div>
+                </div>
       </div>
     </div>
   )

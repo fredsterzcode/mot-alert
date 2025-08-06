@@ -334,8 +334,9 @@ export default function SignupPage() {
               </Link>
             </p>
           </div>
-        </div>
+                </div>
       </div>
     </div>
   )
+}
 }
