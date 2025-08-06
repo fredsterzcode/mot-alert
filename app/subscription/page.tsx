@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { 
   CheckIcon, 
   XMarkIcon,
@@ -13,17 +14,73 @@ import {
 import MobileNav from '@/components/MobileNav'
 import Script from 'next/script'
 
+interface User {
+  id: string
+  email: string
+  name: string
+  phone?: string
+  isVerified: boolean
+  isPremium: boolean
+  isPartner: boolean
+}
+
 export default function SubscriptionPage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchUserData()
+  }, [])
+
+  const fetchUserData = async () => {
+    try {
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem('supabase.auth.token')
+      
+      if (!accessToken) {
+        console.log('No access token found, redirecting to login')
+        window.location.href = '/login'
+        return
+      }
+
+      // Get user data with authentication token
+      const userResponse = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      
+      const userData = await userResponse.json()
+      console.log('User data response:', userData)
+      
+      if (userData.success) {
+        setUser(userData.user)
+      } else {
+        window.location.href = '/login'
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+      window.location.href = '/login'
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleUpgrade = async (planType: string) => {
     try {
+      if (!user) {
+        alert('Please log in to upgrade your plan')
+        return
+      }
+
       const response = await fetch('/api/subscriptions/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'user@example.com', // This should come from user session
-          name: 'User Name', // This should come from user session
+          email: user.email,
+          name: user.name,
           planType: planType
         }),
       });
@@ -31,7 +88,7 @@ export default function SubscriptionPage() {
       const result = await response.json();
 
       if (result.success) {
-        window.location.href = result.checkoutUrl;
+        window.location.href = result.url;
       } else {
         alert('Failed to create checkout session: ' + result.error);
       }
@@ -39,6 +96,21 @@ export default function SubscriptionPage() {
       alert('Error setting up payment: ' + error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -199,66 +271,6 @@ export default function SubscriptionPage() {
                   <CreditCardIcon className="w-4 h-4 mr-2" />
                   Upgrade to Premium
                 </button>
-              </div>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 relative">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
-                  <BuildingOfficeIcon className="w-4 h-4 mr-1" />
-                  Enterprise
-                </span>
-              </div>
-              
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                <div className="text-4xl font-bold text-gray-900 mb-2">
-                  Contact Us
-                </div>
-                
-                <ul className="space-y-3 mb-8 text-left">
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>Unlimited vehicles</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>White-label solution</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>Custom branding</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>API access</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>Dedicated support</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>Advanced reporting</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>Custom integrations</span>
-                  </li>
-                  <li className="flex items-center">
-                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    <span>SLA guarantees</span>
-                  </li>
-                </ul>
-                
-                <a 
-                  href="mailto:info@facsystems.co.uk?subject=Enterprise%20Inquiry"
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center mb-4"
-                >
-                  <PhoneIcon className="w-4 h-4 mr-2" />
-                  Contact Sales
-                </a>
               </div>
             </div>
 

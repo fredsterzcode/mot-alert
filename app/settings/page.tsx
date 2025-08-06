@@ -56,15 +56,31 @@ export default function SettingsPage() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('/api/users/me')
-      const data = await response.json()
+      // Get the access token from localStorage
+      const accessToken = localStorage.getItem('supabase.auth.token')
       
-      if (data.success) {
-        setUser(data.user)
+      if (!accessToken) {
+        console.log('No access token found, redirecting to login')
+        window.location.href = '/login'
+        return
+      }
+
+      // Get user data with authentication token
+      const userResponse = await fetch('/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      
+      const userData = await userResponse.json()
+      console.log('User data response:', userData)
+      
+      if (userData.success) {
+        setUser(userData.user)
         setFormData({
-          name: data.user.name || '',
-          email: data.user.email || '',
-          phone: data.user.phone || ''
+          name: userData.user.name || '',
+          email: userData.user.email || '',
+          phone: userData.user.phone || ''
         })
       } else {
         window.location.href = '/login'

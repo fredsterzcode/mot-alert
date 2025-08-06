@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
 // Lazy initialization of Supabase client
@@ -8,30 +7,31 @@ let supabase = null;
 const getSupabaseClient = () => {
   if (!supabase) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       console.warn('Supabase environment variables not configured');
       return null;
     }
     
-    supabase = createClient(supabaseUrl, supabaseServiceKey);
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
   }
   return supabase;
 };
 
 export async function GET(request) {
   try {
-    const user = await getCurrentUser(request);
-    
-    if (!user) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       );
     }
-
+    
+    const token = authHeader.substring(7);
     const supabaseClient = getSupabaseClient();
+    
     if (!supabaseClient) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -39,15 +39,26 @@ export async function GET(request) {
       );
     }
 
+    // Verify the token with Supabase
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Token verification error:', authError);
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     // Get user details from database
-    const { data: userData, error } = await supabaseClient
+    const { data: userData, error: userError } = await supabaseClient
       .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    if (error) {
-      console.error('Error fetching user data:', error);
+    if (userError) {
+      console.error('Error fetching user data:', userError);
       return NextResponse.json(
         { error: 'Failed to fetch user data' },
         { status: 500 }
@@ -81,9 +92,29 @@ export async function GET(request) {
 // Update user profile
 export async function PUT(request) {
   try {
-    const user = await getCurrentUser(request);
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
     
-    if (!user) {
+    const token = authHeader.substring(7);
+    const supabaseClient = getSupabaseClient();
+    
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    // Verify the token with Supabase
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Token verification error:', authError);
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -110,14 +141,6 @@ export async function PUT(request) {
     }
 
     // Check if email is already taken by another user
-    const supabaseClient = getSupabaseClient();
-    if (!supabaseClient) {
-      return NextResponse.json(
-        { error: 'Database connection failed' },
-        { status: 500 }
-      );
-    }
-
     const { data: existingUser } = await supabaseClient
       .from('users')
       .select('id')

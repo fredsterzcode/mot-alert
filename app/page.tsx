@@ -30,19 +30,19 @@ export default function HomePage() {
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-3">
               <Image
                 src="/mot-alert-logo.png"
                 alt="MOT Alert Logo"
-                width={48}
-                height={48}
+                width={40}
+                height={40}
                 className="rounded-xl shadow-sm"
               />
               <div className="hidden sm:block">
                 <div className="text-xl font-bold text-gray-900">MOT Alert</div>
                 <div className="text-xs text-gray-500">Mot & Tax Reminder</div>
               </div>
-            </div>
+            </Link>
             <nav className="hidden md:flex items-center space-x-8">
               <Link href="/" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">
                 Home
@@ -101,20 +101,20 @@ export default function HomePage() {
                 Watch Demo
               </button>
             </div>
-
+            
             {/* Trust Indicators */}
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
               <div className="flex items-center">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                No credit card required
+                <span>Free to start</span>
               </div>
               <div className="flex items-center">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                Setup in 2 minutes
+                <span>No credit card required</span>
               </div>
               <div className="flex items-center">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                Cancel anytime
+                <span>Cancel anytime</span>
               </div>
             </div>
           </div>

@@ -55,6 +55,9 @@ export default function DashboardPage() {
   const [showAddVehicle, setShowAddVehicle] = useState(false)
   const [newVehicle, setNewVehicle] = useState({ 
     registration: '',
+    make: '',
+    model: '',
+    year: '',
     motDueDate: '',
     taxDueDate: '',
     insuranceDueDate: ''
@@ -186,6 +189,9 @@ export default function DashboardPage() {
         body: JSON.stringify({
           userId: user.id,
           registration: newVehicle.registration.toUpperCase(),
+          make: newVehicle.make,
+          model: newVehicle.model,
+          year: newVehicle.year,
           motDueDate: newVehicle.motDueDate,
           taxDueDate: newVehicle.taxDueDate,
           insuranceDueDate: newVehicle.insuranceDueDate
@@ -195,7 +201,7 @@ export default function DashboardPage() {
       const data = await response.json()
       
       if (data.success) {
-        setNewVehicle({ registration: '', motDueDate: '', taxDueDate: '', insuranceDueDate: '' })
+        setNewVehicle({ registration: '', make: '', model: '', year: '', motDueDate: '', taxDueDate: '', insuranceDueDate: '' })
         setShowAddVehicle(false)
         fetchVehicles(user.id)
       } else {
@@ -706,17 +712,50 @@ export default function DashboardPage() {
                      <div className="space-y-4">
                        <div>
                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                           MOT Due Date
+                           Make
                          </label>
                          <input
-                           type="date"
-                           value={newVehicle.motDueDate}
-                           onChange={(e) => setNewVehicle({ ...newVehicle, motDueDate: e.target.value })}
+                           type="text"
+                           value={newVehicle.make}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, make: e.target.value })}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Model
+                         </label>
+                         <input
+                           type="text"
+                           value={newVehicle.model}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })}
+                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-gray-700 mb-2">
+                           Year
+                         </label>
+                         <input
+                           type="text"
+                           value={newVehicle.year}
+                           onChange={(e) => setNewVehicle({ ...newVehicle, year: e.target.value })}
                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                          />
                        </div>
                        {(user?.isPartner || subscription?.plan_type === 'PREMIUM') && (
                          <>
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               MOT Due Date
+                             </label>
+                             <input
+                               type="date"
+                               value={newVehicle.motDueDate}
+                               onChange={(e) => setNewVehicle({ ...newVehicle, motDueDate: e.target.value })}
+                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                             />
+                           </div>
                            <div>
                              <label className="block text-sm font-medium text-gray-700 mb-2">
                                Tax Due Date
