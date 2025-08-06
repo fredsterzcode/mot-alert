@@ -3,27 +3,26 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import * as z from 'zod'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
-  ArrowRightIcon,
+  UserIcon, 
+  BuildingOfficeIcon, 
   CheckIcon,
-  BuildingOfficeIcon,
-  UserIcon,
-  CreditCardIcon
+  ArrowRightIcon
 } from '@heroicons/react/24/outline'
 import MobileNav from '@/components/MobileNav'
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email'),
+  email: z.string().email('Please enter a valid email address'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   userType: z.enum(['free', 'premium', 'partner']),
-  // Partner-specific fields
   companyName: z.string().optional(),
   companyDescription: z.string().optional(),
-  website: z.string().url().optional().or(z.literal('')),
+  website: z.string().url().optional().or(z.literal(''))
 })
 
 type SignupForm = z.infer<typeof signupSchema>
@@ -53,15 +52,18 @@ export default function SignupPage() {
     setError('')
     
     try {
-      // For free tier, just create account
+      // For free tier, create account with Supabase Auth
       if (data.userType === 'free') {
-        const response = await fetch('/api/users', {
+        const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            ...data,
+            email: data.email,
+            password: data.password,
+            name: data.name,
+            phone: data.phone,
             userType: 'individual'
           }),
         })
@@ -82,6 +84,7 @@ export default function SignupPage() {
           },
           body: JSON.stringify({
             email: data.email,
+            password: data.password,
             name: data.name,
             planType: data.userType === 'premium' ? 'premium' : 'whitelabel',
             phone: data.phone,
@@ -182,7 +185,7 @@ export default function SignupPage() {
                 </div>
               </label>
 
-              {/* Premium Tier */}
+              {/* Premium */}
               <label className={`relative cursor-pointer ${watchedUserType === 'premium' ? 'ring-2 ring-orange-500' : ''}`}>
                 <input
                   type="radio"
@@ -303,20 +306,38 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  {...register('phone')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your phone number"
-                />
-                {errors.phone && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-                )}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    {...register('phone')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                    placeholder="Enter your phone number"
+                  />
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    {...register('password')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                    placeholder="Create a password"
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                  )}
+                </div>
               </div>
 
               {/* Partner-specific fields */}

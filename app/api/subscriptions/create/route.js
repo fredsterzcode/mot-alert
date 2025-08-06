@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createCustomer, createCheckoutSession } from '@/lib/stripe';
-import { getUserByEmail } from '@/lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 
 // Lazy initialization of Supabase client
@@ -9,14 +8,14 @@ let supabase = null;
 const getSupabaseClient = () => {
   if (!supabase) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       console.warn('Supabase environment variables not configured');
       return null;
     }
     
-    supabase = createClient(supabaseUrl, supabaseServiceKey);
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
   }
   return supabase;
 };
@@ -25,6 +24,7 @@ export async function POST(request) {
   try {
     const { 
       email, 
+      password,
       name, 
       planType, 
       phone,
@@ -64,62 +64,88 @@ export async function POST(request) {
       );
     }
 
-    // Check if user exists
-    let user = await getUserByEmail(email);
+    // Check if user exists in auth.users
+    let user = null;
     
-    // Create user if doesn't exist
-    if (!user) {
-      const { data: newUser, error: userError } = await supabaseClient
-        .from('users')
-        .insert({
-          name,
-          email,
-          phone,
-          is_verified: false,
-          is_premium: planType === 'premium',
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+    // If password is provided, create new user with Supabase Auth
+    if (password) {
+      const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            phone,
+            user_type: planType === 'premium' ? 'premium' : 'partner'
+          }
+        }
+      });
 
-      if (userError) {
+      if (authError) {
+        console.error('Auth signup error:', authError);
         return NextResponse.json(
-          { error: 'Failed to create user', details: userError.message },
+          { error: authError.message },
+          { status: 400 }
+        );
+      }
+
+      if (!authData.user) {
+        return NextResponse.json(
+          { error: 'Failed to create user account' },
           { status: 500 }
         );
       }
 
-      user = newUser;
+      user = authData.user;
+    } else {
+      // For existing users, try to get from auth.users
+      const { data: { users }, error } = await supabaseClient.auth.admin.listUsers();
+      if (!error) {
+        user = users.find(u => u.email === email);
+      }
+    }
 
-      // If creating a partner, create partner record
-      if (planType === 'whitelabel') {
-        const { error: partnerError } = await supabaseClient
-          .from('partners')
-          .insert({
-            user_id: user.id,
-            name: name,
-            company_name: companyName || name,
-            contact_email: email,
-            phone: phone,
-            company_description: companyDescription,
-            website_url: website,
-            is_active: true,
-            plan_type: 'BASIC',
-            commission_rate: 0.00,
-            created_at: new Date().toISOString()
-          });
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found or failed to create' },
+        { status: 404 }
+      );
+    }
 
-        if (partnerError) {
-          console.error('Partner creation error:', partnerError);
-          // Don't fail the signup if partner creation fails
-        }
+    // If creating a partner, create partner record
+    if (planType === 'whitelabel') {
+      const { error: partnerError } = await supabaseClient
+        .from('partners')
+        .insert({
+          user_id: user.id,
+          name: name,
+          company_name: companyName || name,
+          contact_email: email,
+          phone: phone,
+          company_description: companyDescription,
+          website_url: website,
+          is_active: true,
+          plan_type: 'BASIC',
+          commission_rate: 0.00,
+          created_at: new Date().toISOString()
+        });
+
+      if (partnerError) {
+        console.error('Partner creation error:', partnerError);
+        // Don't fail the signup if partner creation fails
       }
     }
     
     // Create or get Stripe customer
     let customerId;
-    if (user.stripe_customer_id) {
-      customerId = user.stripe_customer_id;
+    const { data: userData } = await supabaseClient
+      .from('users')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userData && userData.stripe_customer_id) {
+      customerId = userData.stripe_customer_id;
     } else {
       const customer = await createCustomer(email, name);
       customerId = customer.id;
@@ -140,7 +166,7 @@ export async function POST(request) {
     );
 
     // Send welcome email for new users
-    if (!user.stripe_customer_id) {
+    if (password) {
       try {
         const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/email`, {
           method: 'POST',

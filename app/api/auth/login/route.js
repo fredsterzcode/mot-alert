@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getUserByEmail } from '@/lib/supabase';
-import { generateSessionToken } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
 // Lazy initialization of Supabase client
@@ -9,14 +7,14 @@ let supabase = null;
 const getSupabaseClient = () => {
   if (!supabase) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       console.warn('Supabase environment variables not configured');
       return null;
     }
     
-    supabase = createClient(supabaseUrl, supabaseServiceKey);
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
   }
   return supabase;
 };
@@ -33,20 +31,14 @@ export async function POST(request) {
       );
     }
 
-    // Get user from database
-    const user = await getUserByEmail(email);
-    
-    if (!user) {
+    // Validate password
+    if (!password) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Password is required' },
+        { status: 400 }
       );
     }
 
-    // TODO: Add proper password validation here
-    // For now, we'll accept any password for testing
-
-    // Check if user is a partner
     const supabaseClient = getSupabaseClient();
     if (!supabaseClient) {
       return NextResponse.json(
@@ -55,27 +47,60 @@ export async function POST(request) {
       );
     }
 
+    // Sign in with Supabase Auth
+    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (authError) {
+      console.error('Auth login error:', authError);
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'Login failed' },
+        { status: 500 }
+      );
+    }
+
+    // Get user data from public.users table
+    const { data: userData, error: userError } = await supabaseClient
+      .from('users')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (userError) {
+      console.error('Error getting user data:', userError);
+      return NextResponse.json(
+        { error: 'Failed to get user data' },
+        { status: 500 }
+      );
+    }
+
+    // Check if user is a partner
     const { data: partner } = await supabaseClient
       .from('partners')
       .select('id, name, company_name, is_active')
-      .eq('user_id', user.id)
+      .eq('user_id', authData.user.id)
       .eq('is_active', true)
       .single();
-
-    // Generate session token
-    const token = generateSessionToken(user.id);
 
     return NextResponse.json({
       success: true,
       message: 'Login successful',
-      token,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        phone: user.phone,
-        isVerified: user.is_verified,
-        isPremium: user.is_premium,
+        id: authData.user.id,
+        email: authData.user.email,
+        name: userData.name,
+        phone: userData.phone,
+        isVerified: userData.is_verified,
+        isPremium: userData.is_premium,
         isPartner: !!partner,
         partner: partner ? {
           id: partner.id,
