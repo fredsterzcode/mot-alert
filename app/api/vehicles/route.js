@@ -1,124 +1,55 @@
 import { NextResponse } from 'next/server';
-import { createVehicle, getUserVehicles, getVehicleById, updateVehicle } from '@/lib/supabase';
-import { requireAuth } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 
-export async function POST(request) {
-  try {
-    const { userId, registration, make, model, year, motDueDate, taxDueDate, insuranceDueDate } = await request.json();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-    // Validate required fields
-    if (!userId || !registration) {
-      return NextResponse.json(
-        { error: 'User ID and registration are required' },
-        { status: 400 }
-      );
-    }
-
-    // Format registration (remove spaces, uppercase)
-    const formattedRegistration = registration.replace(/\s/g, '').toUpperCase();
-
-    // Create vehicle with proper field mapping
-    const vehicleData = {
-      registration: formattedRegistration,
-      make,
-      model,
-      year
-    };
-    
-    // Only add date fields if they exist
-    if (motDueDate) vehicleData.mot_due_date = motDueDate;
-    if (taxDueDate) vehicleData.tax_due_date = taxDueDate;
-    if (insuranceDueDate) vehicleData.insurance_due_date = insuranceDueDate;
-    
-    const vehicle = await createVehicle(userId, vehicleData);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Vehicle added successfully',
-      vehicle: {
-        id: vehicle.id,
-        registration: vehicle.registration,
-        make: vehicle.make,
-        model: vehicle.model,
-        year: vehicle.year,
-        motDueDate: vehicle.mot_due_date,
-        taxDueDate: vehicle.tax_due_date,
-        insuranceDueDate: vehicle.insurance_due_date,
-        createdAt: vehicle.created_at
-      }
-    });
-
-  } catch (error) {
-    console.error('Vehicle creation error:', error);
-    return NextResponse.json(
-      { error: 'Failed to add vehicle', details: error.message },
-      { status: 500 }
-    );
-  }
-}
-
+// GET - Get user's vehicles
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const vehicleId = searchParams.get('id');
-
-    if (vehicleId) {
-      // Get specific vehicle
-      const vehicle = await getVehicleById(vehicleId);
-      
-      if (!vehicle) {
-        return NextResponse.json(
-          { error: 'Vehicle not found' },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        vehicle: {
-          id: vehicle.id,
-          registration: vehicle.registration,
-          make: vehicle.make,
-          model: vehicle.model,
-          year: vehicle.year,
-          motDueDate: vehicle.mot_due_date,
-          taxDueDate: vehicle.tax_due_date,
-          insuranceDueDate: vehicle.insurance_due_date,
-          createdAt: vehicle.created_at,
-          updatedAt: vehicle.updated_at
-        }
-      });
-    }
-
-    if (!userId) {
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
+        { error: 'Authentication required' },
+        { status: 401 }
       );
     }
 
-    // Get user's vehicles
-    const vehicles = await getUserVehicles(userId);
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    // Ensure user can only access their own vehicles
+    if (userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
+    const { data: vehicles, error } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch vehicles', details: error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      vehicles: vehicles.map(vehicle => ({
-        id: vehicle.id,
-        registration: vehicle.registration,
-        make: vehicle.make,
-        model: vehicle.model,
-        year: vehicle.year,
-        motDueDate: vehicle.mot_due_date,
-        taxDueDate: vehicle.tax_due_date,
-        insuranceDueDate: vehicle.insurance_due_date,
-        createdAt: vehicle.created_at,
-        updatedAt: vehicle.updated_at
-      }))
+      vehicles: vehicles || []
     });
 
   } catch (error) {
-    console.error('Vehicle retrieval error:', error);
+    console.error('Get vehicles error:', error);
     return NextResponse.json(
       { error: 'Failed to get vehicles', details: error.message },
       { status: 500 }
@@ -126,44 +57,101 @@ export async function GET(request) {
   }
 }
 
-export async function PUT(request) {
+// POST - Add new vehicle
+export async function POST(request) {
   try {
-    const { id, updates } = await request.json();
-
-    if (!id) {
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'Vehicle ID is required' },
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { userId, registration } = await request.json();
+
+    // Validate input
+    if (!registration || !registration.trim()) {
+      return NextResponse.json(
+        { error: 'Vehicle registration is required' },
         { status: 400 }
       );
     }
 
-    // Format registration if it's being updated
-    if (updates.registration) {
-      updates.registration = updates.registration.replace(/\s/g, '').toUpperCase();
+    // Ensure user can only add vehicles to their own account
+    if (userId !== user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
     }
 
-    const updatedVehicle = await updateVehicle(id, updates);
+    // Check vehicle limits based on subscription
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('plan_type')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single();
+
+    const vehicleLimit = subscription?.plan_type === 'PREMIUM' ? 3 : 1;
+
+    // Count existing vehicles
+    const { count: vehicleCount } = await supabase
+      .from('vehicles')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (vehicleCount >= vehicleLimit) {
+      return NextResponse.json(
+        { error: `You can only add ${vehicleLimit} vehicle${vehicleLimit > 1 ? 's' : ''} on your current plan. Upgrade to Premium for up to 3 vehicles.` },
+        { status: 400 }
+      );
+    }
+
+    // Check if vehicle already exists for this user
+    const { data: existingVehicle } = await supabase
+      .from('vehicles')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('registration', registration.toUpperCase())
+      .single();
+
+    if (existingVehicle) {
+      return NextResponse.json(
+        { error: 'Vehicle with this registration already exists in your account' },
+        { status: 400 }
+      );
+    }
+
+    // Add vehicle
+    const { data: vehicle, error } = await supabase
+      .from('vehicles')
+      .insert({
+        user_id: userId,
+        registration: registration.toUpperCase(),
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to add vehicle', details: error.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Vehicle updated successfully',
-      vehicle: {
-        id: updatedVehicle.id,
-        registration: updatedVehicle.registration,
-        make: updatedVehicle.make,
-        model: updatedVehicle.model,
-        year: updatedVehicle.year,
-        motDueDate: updatedVehicle.mot_due_date,
-        taxDueDate: updatedVehicle.tax_due_date,
-        insuranceDueDate: updatedVehicle.insurance_due_date,
-        updatedAt: updatedVehicle.updated_at
-      }
+      vehicle
     });
 
   } catch (error) {
-    console.error('Vehicle update error:', error);
+    console.error('Add vehicle error:', error);
     return NextResponse.json(
-      { error: 'Failed to update vehicle', details: error.message },
+      { error: 'Failed to add vehicle', details: error.message },
       { status: 500 }
     );
   }

@@ -1,47 +1,157 @@
 import { NextResponse } from 'next/server';
-import { cancelSubscription, getSubscription } from '@/lib/stripe';
-import { updateSubscriptionStatus } from '@/lib/supabase';
+import { getCurrentUser } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST(request) {
   try {
-    const { subscriptionId } = await request.json();
-
-    if (!subscriptionId) {
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'Subscription ID is required' },
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { subscriptionId, addonId, cancelType } = await request.json();
+
+    if (!subscriptionId || !cancelType) {
+      return NextResponse.json(
+        { error: 'Subscription ID and cancel type are required' },
         { status: 400 }
       );
     }
 
-    // Cancel subscription in Stripe
-    const cancelledSubscription = await cancelSubscription(subscriptionId);
+    // Ensure user can only cancel their own subscriptions
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', subscriptionId)
+      .eq('user_id', user.id)
+      .single();
 
-    // Update subscription status in database
-    await updateSubscriptionStatus(subscriptionId, 'cancelled');
+    if (subError || !subscription) {
+      return NextResponse.json(
+        { error: 'Subscription not found or unauthorized' },
+        { status: 404 }
+      );
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Subscription cancelled successfully',
-      subscription: {
-        id: cancelledSubscription.id,
-        status: cancelledSubscription.status,
-        cancelAtPeriodEnd: cancelledSubscription.cancel_at_period_end
+    if (cancelType === 'subscription') {
+      // Cancel the main subscription
+      try {
+        await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+          cancel_at_period_end: true
+        });
+
+        // Update subscription status in database
+        const { error: updateError } = await supabase
+          .from('subscriptions')
+          .update({
+            status: 'cancelled',
+            cancelled_at: new Date().toISOString()
+          })
+          .eq('id', subscriptionId);
+
+        if (updateError) {
+          console.error('Error updating subscription:', updateError);
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Subscription will be cancelled at the end of the current billing period'
+        });
+
+      } catch (stripeError) {
+        console.error('Stripe cancellation error:', stripeError);
+        return NextResponse.json(
+          { error: 'Failed to cancel subscription' },
+          { status: 500 }
+        );
       }
-    });
+
+    } else if (cancelType === 'addon') {
+      // Cancel addon auto-renewal
+      if (!addonId) {
+        return NextResponse.json(
+          { error: 'Addon ID is required for addon cancellation' },
+          { status: 400 }
+        );
+      }
+
+      const { data: addon, error: addonError } = await supabase
+        .from('subscription_addons')
+        .select('*')
+        .eq('id', addonId)
+        .eq('subscription_id', subscriptionId)
+        .single();
+
+      if (addonError || !addon) {
+        return NextResponse.json(
+          { error: 'Addon not found' },
+          { status: 404 }
+        );
+      }
+
+      // Disable auto-renewal for the addon
+      const { error: updateError } = await supabase
+        .from('subscription_addons')
+        .update({
+          auto_renew: false,
+          next_renewal_date: null
+        })
+        .eq('id', addonId);
+
+      if (updateError) {
+        console.error('Error updating addon:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to cancel addon auto-renewal' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Addon auto-renewal cancelled successfully'
+      });
+
+    } else {
+      return NextResponse.json(
+        { error: 'Invalid cancel type' },
+        { status: 400 }
+      );
+    }
 
   } catch (error) {
     console.error('Subscription cancellation error:', error);
     return NextResponse.json(
-      { error: 'Failed to cancel subscription', details: error.message },
+      { error: 'Failed to cancel subscription' },
       { status: 500 }
     );
   }
 }
 
+// Get cancellation options
 export async function GET(request) {
   try {
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
-    const subscriptionId = searchParams.get('id');
+    const subscriptionId = searchParams.get('subscriptionId');
 
     if (!subscriptionId) {
       return NextResponse.json(
@@ -50,28 +160,30 @@ export async function GET(request) {
       );
     }
 
-    // Get subscription details from Stripe
-    const subscription = await getSubscription(subscriptionId);
+    // Get subscription and addons
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('id', subscriptionId)
+      .eq('user_id', user.id)
+      .single();
+
+    const { data: addons } = await supabase
+      .from('subscription_addons')
+      .select('*')
+      .eq('subscription_id', subscriptionId)
+      .eq('is_active', true);
 
     return NextResponse.json({
       success: true,
-      subscription: {
-        id: subscription.id,
-        status: subscription.status,
-        currentPeriodStart: subscription.current_period_start,
-        currentPeriodEnd: subscription.current_period_end,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        items: subscription.items.data.map(item => ({
-          priceId: item.price.id,
-          quantity: item.quantity
-        }))
-      }
+      subscription,
+      addons: addons || []
     });
 
   } catch (error) {
-    console.error('Subscription retrieval error:', error);
+    console.error('Get cancellation options error:', error);
     return NextResponse.json(
-      { error: 'Failed to get subscription', details: error.message },
+      { error: 'Failed to get cancellation options' },
       { status: 500 }
     );
   }

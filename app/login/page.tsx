@@ -12,6 +12,7 @@ import {
   ArrowRightIcon,
   CheckIcon
 } from '@heroicons/react/24/outline'
+import MobileNav from '@/components/MobileNav'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -38,14 +39,27 @@ export default function LoginPage() {
     setError('')
     
     try {
-      // TODO: Implement actual login logic
-      console.log('Login attempt:', data)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // For now, redirect to dashboard
-      window.location.href = '/dashboard'
+      // Call the login API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Check if user is a partner
+        if (result.user.isPartner) {
+          window.location.href = '/partner'
+        } else {
+          window.location.href = '/dashboard'
+        }
+      } else {
+        setError(result.error || 'Login failed')
+      }
     } catch (err) {
       setError('Invalid email or password')
     } finally {
@@ -54,23 +68,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <Image
-              src="/mot-alert-logo.png"
-              alt="MOT Alert Logo"
-              width={48}
-              height={48}
-              className="rounded-xl shadow-lg"
-            />
-            <span className="text-2xl font-bold text-gray-900">MOT Alert</span>
-          </Link>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
-          <p className="text-gray-600">Sign in to your account</p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
+      {/* Header with Mobile Nav */}
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link href="/" className="flex items-center space-x-3">
+              <Image
+                src="/mot-alert-logo.png"
+                alt="MOT Alert Logo"
+                width={40}
+                height={40}
+                className="rounded-xl shadow-sm"
+              />
+              <div className="hidden sm:block">
+                <div className="text-xl font-bold text-gray-900">MOT Alert</div>
+                <div className="text-xs text-gray-500">Mot & Tax Reminder</div>
+              </div>
+            </Link>
+            <MobileNav />
+          </div>
         </div>
+      </header>
+
+      <div className="flex items-center justify-center min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
+            <p className="text-gray-600">Sign in to your account</p>
+          </div>
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">

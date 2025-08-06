@@ -1,37 +1,106 @@
 import { NextResponse } from 'next/server';
-import { createUser, getUserByEmail, updateUser } from '@/lib/supabase';
-import { sendWelcomeEmail } from '@/lib/resend-email';
+import { createClient } from '@supabase/supabase-js';
+import { getUserByEmail, updateUser } from '@/lib/supabase';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST(request) {
   try {
-    const { email, name, phone } = await request.json();
+    const { 
+      name, 
+      email, 
+      phone, 
+      userType = 'individual',
+      companyName,
+      companyDescription,
+      website
+    } = await request.json();
 
-    // Validate email
-    if (!email || !email.includes('@')) {
+    // Validate required fields
+    if (!name || !email) {
       return NextResponse.json(
-        { error: 'Valid email is required' },
+        { error: 'Name and email are required' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
-    const existingUser = await getUserByEmail(email);
+    // Check if email already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
+
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 409 }
+        { error: 'Email already registered' },
+        { status: 400 }
       );
     }
 
-    // Create new user
-    const user = await createUser(email, name, phone);
+    // Check phone number uniqueness (if provided)
+    if (phone) {
+      const { data: existingPhone } = await supabase
+        .from('users')
+        .select('id')
+        .eq('phone', phone)
+        .single();
 
-    // Send welcome email
-    try {
-      await sendWelcomeEmail(email, name || 'there', 'Your Vehicle');
-    } catch (emailError) {
-      console.error('Welcome email failed:', emailError);
-      // Don't fail the signup if email fails
+      if (existingPhone) {
+        return NextResponse.json(
+          { error: 'Phone number already registered to another account' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Create user
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .insert({
+        name,
+        email,
+        phone,
+        is_verified: false,
+        is_premium: false,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (userError) {
+      return NextResponse.json(
+        { error: 'Failed to create user', details: userError.message },
+        { status: 500 }
+      );
+    }
+
+    // If user is a partner, create partner record
+    if (userType === 'partner') {
+      const { error: partnerError } = await supabase
+        .from('partners')
+        .insert({
+          user_id: user.id,
+          name: name,
+          subdomain: generateSubdomain(companyName || name),
+          company_name: companyName || name,
+          contact_email: email,
+          phone: phone,
+          company_description: companyDescription,
+          website_url: website,
+          is_active: true,
+          plan_type: 'BASIC',
+          commission_rate: 0.00,
+          created_at: new Date().toISOString()
+        });
+
+      if (partnerError) {
+        console.error('Partner creation error:', partnerError);
+        // Don't fail the signup if partner creation fails
+      }
     }
 
     return NextResponse.json({
@@ -39,11 +108,12 @@ export async function POST(request) {
       message: 'User created successfully',
       user: {
         id: user.id,
-        email: user.email,
         name: user.name,
+        email: user.email,
         phone: user.phone,
         isVerified: user.is_verified,
-        isPremium: user.is_premium
+        isPremium: user.is_premium,
+        isPartner: userType === 'partner'
       }
     });
 
@@ -54,6 +124,14 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+}
+
+// Helper function to generate subdomain
+function generateSubdomain(companyName) {
+  return companyName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .substring(0, 20);
 }
 
 export async function GET(request) {

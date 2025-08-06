@@ -13,6 +13,7 @@ import {
   PlayIcon
 } from '@heroicons/react/24/outline'
 import FAQ from '@/components/FAQ'
+import MobileNav from '@/components/MobileNav'
 
 export default function HomePage() {
   return (
@@ -48,13 +49,7 @@ export default function HomePage() {
                 Get Started Free
               </Link>
             </nav>
-            <div className="md:hidden">
-              <button className="text-gray-700 p-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
+            <MobileNav />
           </div>
         </div>
       </header>
@@ -82,7 +77,7 @@ export default function HomePage() {
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Join <span className="font-semibold text-orange-600">50,000+ drivers</span> who trust MOT Alert for timely reminders. 
-              Get started free today.
+              Get started free today - no credit card required.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -90,7 +85,7 @@ export default function HomePage() {
                 href="/signup"
                 className="group bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 hover:scale-105 shadow-xl hover:shadow-2xl flex items-center"
               >
-                Start Free Trial
+                Get Started Free
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
               <button className="flex items-center text-gray-700 hover:text-orange-600 font-medium">
@@ -204,10 +199,10 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Premium Plan</h3>
                 <div className="text-4xl font-bold text-white mb-2">
-                  £1.99<span className="text-lg text-orange-100">/month</span>
+                  £19.99<span className="text-lg text-orange-100">/year</span>
                 </div>
                 <div className="text-sm text-orange-100 mb-2">
-                  or £19.99/year (save 16%)
+                  or £1.99/month
                 </div>
                 <p className="text-orange-100">For serious drivers</p>
               </div>
@@ -320,7 +315,7 @@ export default function HomePage() {
                 <span className="ml-2 text-sm text-gray-500">Verified Customer</span>
               </div>
               <p className="text-gray-700 mb-6 leading-relaxed">
-                "MOT Alert saved me from a £1,000 fine! The reminders are spot on and I never miss my MOT now. Best £1.99 I spend each month."
+                "MOT Alert saved me from a £1,000 fine! The reminders are spot on and I never miss my MOT now. Best £19.99 I spend each year."
               </p>
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">
@@ -396,7 +391,7 @@ export default function HomePage() {
               href="/signup"
               className="bg-white hover:bg-gray-100 text-orange-600 px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 hover:scale-105 shadow-xl flex items-center justify-center"
             >
-              Start Free Trial
+              Get Started Free
               <ArrowRightIcon className="w-5 h-5 ml-2" />
             </Link>
             <Link 
@@ -473,10 +468,20 @@ export default function HomePage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2">
-                <li><Link href="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link></li>
+                <li className="flex items-center">
+                  <EnvelopeIcon className="w-4 h-4 text-gray-400 mr-2" />
+                  <a href="mailto:info@facsystems.co.uk" className="text-gray-300 hover:text-white transition-colors">
+                    info@facsystems.co.uk
+                  </a>
+                </li>
+                <li className="flex items-center">
+                  <PhoneIcon className="w-4 h-4 text-gray-400 mr-2" />
+                  <a href="tel:+03333220408" className="text-gray-300 hover:text-white transition-colors">
+                    +0333 322 0408
+                  </a>
+                </li>
                 <li><Link href="/privacy" className="text-gray-300 hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="text-gray-300 hover:text-white transition-colors">Terms of Service</Link></li>
-                <li><Link href="/help" className="text-gray-300 hover:text-white transition-colors">Help Center</Link></li>
               </ul>
             </div>
           </div>

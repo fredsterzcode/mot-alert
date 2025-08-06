@@ -11,15 +11,15 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "How much does MOT Alert cost for drivers?",
-    answer: "The Free tier offers email reminders for one vehicle with partner garage promotions. The Premium tier (£1.99/month or £19.99/year) includes SMS and email reminders for up to 3 vehicles, ad-free, with custom schedules and priority support."
+    answer: "The Free tier offers email reminders for one vehicle with partner garage promotions. The Premium tier (£19.99/year) includes SMS and email reminders for up to 3 vehicles, ad-free, with custom schedules and priority support. Additional vehicles cost £9.99 each."
   },
   {
     question: "What's the difference between Free and Premium tiers?",
-    answer: "The Free tier provides email-only reminders for one vehicle with ads. The Premium tier adds SMS reminders, supports up to 3 vehicles, and is ad-free with customizable schedules."
+    answer: "The Free tier provides email-only reminders for one vehicle with ads. The Premium tier adds SMS reminders, supports up to 3 vehicles, and is ad-free with customizable schedules. Additional vehicles can be purchased for £9.99 each."
   },
   {
     question: "How do I upgrade to Premium?",
-    answer: "From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment (coming soon)."
+    answer: "From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment. Free users can only upgrade to Premium - there's no option to purchase individual vehicles."
   },
   {
     question: "How do the reminders work?",
@@ -27,7 +27,11 @@ const faqData: FAQItem[] = [
   },
   {
     question: "Can I add multiple vehicles?",
-    answer: "Free users can register 1 vehicle. Premium users can manage up to 3 vehicles with individual reminder schedules for each."
+    answer: "Free users can register 1 vehicle and must upgrade to Premium for more. Premium users can manage up to 3 vehicles with individual reminder schedules for each. Additional vehicles cost £9.99 each."
+  },
+  {
+    question: "What about garage partners?",
+    answer: "Garage partners get the White-Label service for £49.99/month, which includes 5 vehicles free and £4.99 per additional vehicle. This includes custom branding and customer management tools."
   },
   {
     question: "Is my data secure?",

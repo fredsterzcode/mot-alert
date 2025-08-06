@@ -6,30 +6,44 @@ import {
   StarIcon,
   CreditCardIcon
 } from '@heroicons/react/24/outline'
+import MobileNav from '@/components/MobileNav'
 
 export default function SubscriptionPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-3 mb-6">
-            <Image
-              src="/mot-alert-logo.png"
-              alt="MOT Alert Logo"
-              width={40}
-              height={40}
-              className="rounded-lg"
-            />
-            <span className="text-xl font-bold text-gray-900">MOT Alert</span>
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-lg text-gray-600">
-            Start free, upgrade when you need more features
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Mobile Nav */}
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <Link href="/" className="flex items-center space-x-3">
+              <Image
+                src="/mot-alert-logo.png"
+                alt="MOT Alert Logo"
+                width={40}
+                height={40}
+                className="rounded-xl shadow-sm"
+              />
+              <div className="hidden sm:block">
+                <div className="text-xl font-bold text-gray-900">MOT Alert</div>
+                <div className="text-xs text-gray-500">Mot & Tax Reminder</div>
+              </div>
+            </Link>
+            <MobileNav />
+          </div>
         </div>
+      </header>
+
+      <div className="pt-24 pb-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Choose Your Plan
+            </h1>
+            <p className="text-lg text-gray-600">
+              Start free, upgrade when you need more features
+            </p>
+          </div>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
