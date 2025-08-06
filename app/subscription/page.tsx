@@ -9,6 +9,32 @@ import {
 import MobileNav from '@/components/MobileNav'
 
 export default function SubscriptionPage() {
+  const handleUpgrade = async (planType: string) => {
+    try {
+      const response = await fetch('/api/subscriptions/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'user@example.com', // This should come from user session
+          name: 'User Name', // This should come from user session
+          planType: planType
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        window.location.href = result.url;
+      } else {
+        alert('Failed to create checkout session: ' + result.error);
+      }
+    } catch (error) {
+      alert('Error setting up payment: ' + error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with Mobile Nav */}
@@ -48,7 +74,7 @@ export default function SubscriptionPage() {
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Free Plan */}
-            <div className="card relative">
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <span className="bg-gray-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                   Current Plan
@@ -105,9 +131,9 @@ export default function SubscriptionPage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="card border-2 border-primary-500 relative">
+            <div className="bg-white rounded-2xl shadow-xl border-2 border-orange-500 p-8 relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
                   <StarIcon className="w-4 h-4 mr-1" />
                   Most Popular
                 </span>
@@ -116,10 +142,10 @@ export default function SubscriptionPage() {
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">
-                  £1.99<span className="text-lg text-gray-500">/month</span>
+                  £2.99<span className="text-lg text-gray-500">/month</span>
                 </div>
-                <div className="text-sm text-secondary-600 mb-4">
-                  or £19.99/year (16% savings)
+                <div className="text-sm text-orange-600 mb-4">
+                  or £29.99/year (17% savings)
                 </div>
                 
                 <ul className="space-y-3 mb-8 text-left">
@@ -158,22 +184,18 @@ export default function SubscriptionPage() {
                 </ul>
                 
                 <button 
-                  className="btn-primary w-full flex items-center justify-center mb-4"
-                  disabled
-                  title="Coming soon - Backend integration required"
+                  onClick={() => handleUpgrade('premium')}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center mb-4"
                 >
                   <CreditCardIcon className="w-4 h-4 mr-2" />
                   Upgrade to Premium
                 </button>
-                <p className="text-xs text-gray-500">
-                  // TODO: Link to Stripe Checkout
-                </p>
               </div>
             </div>
           </div>
 
           {/* Features Comparison */}
-          <div className="card mb-8">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Feature Comparison
             </h2>
@@ -253,7 +275,7 @@ export default function SubscriptionPage() {
           </div>
 
           {/* FAQ Section */}
-          <div className="card">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Frequently Asked Questions
             </h2>
@@ -265,7 +287,7 @@ export default function SubscriptionPage() {
                 </h3>
                 <p className="text-gray-600">
                   The Free tier offers email reminders for one vehicle with partner garage promotions. 
-                  The Premium tier (£1.99/month or £19.99/year) includes SMS and email reminders for 
+                  The Premium tier (£2.99/month or £29.99/year) includes SMS and email reminders for 
                   up to 3 vehicles, ad-free, with custom schedules and priority support.
                 </p>
               </div>
@@ -286,7 +308,7 @@ export default function SubscriptionPage() {
                   How do I upgrade to Premium?
                 </h3>
                 <p className="text-gray-600">
-                  From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment (coming soon).
+                  From your dashboard, click 'Upgrade to Premium' to subscribe via secure payment through Stripe.
                 </p>
               </div>
               
@@ -308,14 +330,14 @@ export default function SubscriptionPage() {
               Ready to upgrade? Get started with Premium today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/dashboard" className="btn-secondary">
+              <Link href="/dashboard" className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg">
                 Back to Dashboard
               </Link>
               <button 
-                className="btn-primary"
-                disabled
-                title="Coming soon - Backend integration required"
+                onClick={() => handleUpgrade('premium')}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center"
               >
+                <CreditCardIcon className="w-4 h-4 mr-2" />
                 Upgrade to Premium
               </button>
             </div>

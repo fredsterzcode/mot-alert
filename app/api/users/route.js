@@ -85,7 +85,6 @@ export async function POST(request) {
         .insert({
           user_id: user.id,
           name: name,
-          subdomain: generateSubdomain(companyName || name),
           company_name: companyName || name,
           contact_email: email,
           phone: phone,
@@ -124,14 +123,6 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-}
-
-// Helper function to generate subdomain
-function generateSubdomain(companyName) {
-  return companyName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .substring(0, 20);
 }
 
 export async function GET(request) {

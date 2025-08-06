@@ -10,7 +10,8 @@ import {
   ArrowRightIcon,
   CheckIcon,
   BuildingOfficeIcon,
-  UserIcon
+  UserIcon,
+  CreditCardIcon
 } from '@heroicons/react/24/outline'
 import MobileNav from '@/components/MobileNav'
 
@@ -18,7 +19,7 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
-  userType: z.enum(['individual', 'partner']),
+  userType: z.enum(['free', 'premium', 'partner']),
   // Partner-specific fields
   companyName: z.string().optional(),
   companyDescription: z.string().optional(),
@@ -31,7 +32,7 @@ export default function SignupPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [userType, setUserType] = useState<'individual' | 'partner'>('individual')
+  const [userType, setUserType] = useState<'free' | 'premium' | 'partner'>('free')
 
   const {
     register,
@@ -41,7 +42,7 @@ export default function SignupPage() {
   } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      userType: 'individual'
+      userType: 'free'
     }
   })
 
@@ -52,28 +53,52 @@ export default function SignupPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          userType: data.userType
-        }),
-      })
+      // For free tier, just create account
+      if (data.userType === 'free') {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...data,
+            userType: 'individual'
+          }),
+        })
 
-      const result = await response.json()
+        const result = await response.json()
 
-      if (result.success) {
-        // Redirect based on user type
-        if (data.userType === 'partner') {
-          window.location.href = '/partner'
-        } else {
+        if (result.success) {
           window.location.href = '/dashboard'
+        } else {
+          setError(result.error || 'Signup failed')
         }
       } else {
-        setError(result.error || 'Signup failed')
+        // For premium/partner, create checkout session
+        const response = await fetch('/api/subscriptions/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: data.email,
+            name: data.name,
+            planType: data.userType === 'premium' ? 'premium' : 'whitelabel',
+            phone: data.phone,
+            companyName: data.companyName,
+            companyDescription: data.companyDescription,
+            website: data.website
+          }),
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          // Redirect to Stripe checkout
+          window.location.href = result.url
+        } else {
+          setError(result.error || 'Payment setup failed')
+        }
       }
     } catch (err) {
       setError('Signup failed. Please try again.')
@@ -107,7 +132,7 @@ export default function SignupPage() {
       </header>
 
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h1>
@@ -118,24 +143,24 @@ export default function SignupPage() {
           <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">I want to...</h2>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Individual User */}
-              <label className={`relative cursor-pointer ${watchedUserType === 'individual' ? 'ring-2 ring-orange-500' : ''}`}>
+            <div className="grid md:grid-cols-3 gap-4">
+              {/* Free Tier */}
+              <label className={`relative cursor-pointer ${watchedUserType === 'free' ? 'ring-2 ring-orange-500' : ''}`}>
                 <input
                   type="radio"
-                  value="individual"
+                  value="free"
                   {...register('userType')}
                   className="sr-only"
                 />
                 <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-orange-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <UserIcon className="w-6 h-6 text-green-600" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Get MOT Reminders</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Free MOT Reminders</h3>
                   </div>
                   <p className="text-gray-600 text-sm">
-                    I want to receive MOT, tax, and insurance reminders for my vehicles
+                    Get basic email reminders for my vehicle MOT
                   </p>
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
@@ -144,11 +169,52 @@ export default function SignupPage() {
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Track multiple vehicles
+                      1 vehicle included
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      Premium SMS alerts
+                      Basic dashboard
+                    </div>
+                    <div className="text-lg font-bold text-green-600 mt-3">
+                      £0/month
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              {/* Premium Tier */}
+              <label className={`relative cursor-pointer ${watchedUserType === 'premium' ? 'ring-2 ring-orange-500' : ''}`}>
+                <input
+                  type="radio"
+                  value="premium"
+                  {...register('userType')}
+                  className="sr-only"
+                />
+                <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition-colors">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <UserIcon className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Premium Service</h3>
+                  </div>
+                  <p className="text-gray-600 text-sm">
+                    Get SMS reminders and track multiple vehicles
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                      SMS + Email reminders
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                      Up to 3 vehicles
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                      Priority support
+                    </div>
+                    <div className="text-lg font-bold text-orange-600 mt-3">
+                      £2.99/month
                     </div>
                   </div>
                 </div>
@@ -170,7 +236,7 @@ export default function SignupPage() {
                     <h3 className="text-lg font-semibold text-gray-900">White-Label Service</h3>
                   </div>
                   <p className="text-gray-600 text-sm">
-                    I'm a garage/partner and want to offer MOT Alert to my customers
+                    I'm a garage and want to offer MOT Alert to my customers
                   </p>
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
@@ -185,8 +251,7 @@ export default function SignupPage() {
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
                       White-label branding
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
+                    <div className="text-lg font-bold text-blue-600 mt-3">
                       £49.99/month
                     </div>
                   </div>
@@ -315,11 +380,11 @@ export default function SignupPage() {
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Creating account...
+                    {watchedUserType === 'free' ? 'Creating account...' : 'Setting up payment...'}
                   </div>
                 ) : (
                   <>
-                    Create Account
+                    {watchedUserType === 'free' ? 'Create Free Account' : 'Continue to Payment'}
                     <ArrowRightIcon className="w-5 h-5 ml-2" />
                   </>
                 )}

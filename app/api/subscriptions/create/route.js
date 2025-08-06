@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server';
 import { createCustomer, createCheckoutSession } from '@/lib/stripe';
 import { getUserByEmail } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export async function POST(request) {
   try {
-    const { email, name, planType } = await request.json();
+    const { 
+      email, 
+      name, 
+      planType, 
+      phone,
+      companyName,
+      companyDescription,
+      website
+    } = await request.json();
 
     if (!email || !planType) {
       return NextResponse.json(
@@ -32,27 +46,76 @@ export async function POST(request) {
     // Check if user exists
     let user = await getUserByEmail(email);
     
+    // Create user if doesn't exist
+    if (!user) {
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
+        .insert({
+          name,
+          email,
+          phone,
+          is_verified: false,
+          is_premium: planType === 'premium',
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        return NextResponse.json(
+          { error: 'Failed to create user', details: userError.message },
+          { status: 500 }
+        );
+      }
+
+      user = newUser;
+
+      // If creating a partner, create partner record
+      if (planType === 'whitelabel') {
+        const { error: partnerError } = await supabase
+          .from('partners')
+          .insert({
+            user_id: user.id,
+            name: name,
+            company_name: companyName || name,
+            contact_email: email,
+            phone: phone,
+            company_description: companyDescription,
+            website_url: website,
+            is_active: true,
+            plan_type: 'BASIC',
+            commission_rate: 0.00,
+            created_at: new Date().toISOString()
+          });
+
+        if (partnerError) {
+          console.error('Partner creation error:', partnerError);
+          // Don't fail the signup if partner creation fails
+        }
+      }
+    }
+    
     // Create or get Stripe customer
     let customerId;
-    if (user && user.stripe_customer_id) {
+    if (user.stripe_customer_id) {
       customerId = user.stripe_customer_id;
     } else {
       const customer = await createCustomer(email, name);
       customerId = customer.id;
       
       // Update user with Stripe customer ID
-      if (user) {
-        // Update existing user
-        // You'll need to implement updateUser function
-      }
+      await supabase
+        .from('users')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id);
     }
 
     // Create checkout session
     const session = await createCheckoutSession(
       customerId,
       priceId,
-      `${process.env.NEXT_PUBLIC_SITE_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      `${process.env.NEXT_PUBLIC_SITE_URL}/subscription/cancel`
+      `${process.env.NEXT_PUBLIC_SITE_URL}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      `${process.env.NEXT_PUBLIC_SITE_URL}/signup?error=payment_cancelled`
     );
 
     return NextResponse.json({
