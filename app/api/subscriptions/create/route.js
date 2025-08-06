@@ -134,6 +134,26 @@ export async function POST(request) {
         console.error('Partner creation error:', partnerError);
         // Don't fail the signup if partner creation fails
       }
+      
+      // Update user permissions for partner
+      await supabaseClient
+        .from('users')
+        .update({ 
+          is_premium: true,
+          is_partner: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+    } else if (planType === 'premium') {
+      // Update user permissions for premium
+      await supabaseClient
+        .from('users')
+        .update({ 
+          is_premium: true,
+          is_partner: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
     }
     
     // Create or get Stripe customer
