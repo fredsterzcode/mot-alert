@@ -703,7 +703,7 @@ export default function DashboardPage() {
                       />
                     </div>
                     
-                                         <div className="space-y-4">
+                     <div className="space-y-4">
                        <div>
                          <label className="block text-sm font-medium text-gray-700 mb-2">
                            MOT Due Date
@@ -715,28 +715,37 @@ export default function DashboardPage() {
                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
                          />
                        </div>
-                       <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                           Tax Due Date
-                         </label>
-                         <input
-                           type="date"
-                           value={newVehicle.taxDueDate}
-                           onChange={(e) => setNewVehicle({ ...newVehicle, taxDueDate: e.target.value })}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                           Insurance Due Date
-                         </label>
-                         <input
-                           type="date"
-                           value={newVehicle.insuranceDueDate}
-                           onChange={(e) => setNewVehicle({ ...newVehicle, insuranceDueDate: e.target.value })}
-                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                         />
-                       </div>
+                       {(user?.isPartner || subscription?.plan_type === 'PREMIUM') && (
+                         <>
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               Tax Due Date
+                             </label>
+                             <input
+                               type="date"
+                               value={newVehicle.taxDueDate}
+                               onChange={(e) => setNewVehicle({ ...newVehicle, taxDueDate: e.target.value })}
+                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                             />
+                           </div>
+                           <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">
+                               Insurance Due Date
+                             </label>
+                             <input
+                               type="date"
+                               value={newVehicle.insuranceDueDate}
+                               onChange={(e) => setNewVehicle({ ...newVehicle, insuranceDueDate: e.target.value })}
+                               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                             />
+                           </div>
+                         </>
+                       )}
+                       {!(user?.isPartner || subscription?.plan_type === 'PREMIUM') && (
+                         <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+                           💡 <strong>Free Plan:</strong> You can only track MOT due dates. Upgrade to Premium to track tax and insurance due dates as well.
+                         </div>
+                       )}
                      </div>
 
                     <div className="flex space-x-3">
