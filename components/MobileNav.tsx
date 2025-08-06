@@ -34,65 +34,65 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[9999]">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
+            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={toggleMenu}
           />
           
           {/* Menu Panel */}
-          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
-            <div className="p-6">
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div className="p-6 h-full flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <Image
                     src="/mot-alert-logo.png"
                     alt="MOT Alert Logo"
-                    width={40}
-                    height={40}
-                    className="rounded-xl shadow-sm"
+                    width={32}
+                    height={32}
+                    className="rounded-lg shadow-sm"
                   />
                   <div>
-                    <div className="text-lg font-bold text-gray-900">MOT Alert</div>
+                    <div className="text-base font-bold text-gray-900">MOT Alert</div>
                     <div className="text-xs text-gray-500">Mot & Tax Reminder</div>
                   </div>
                 </div>
                 <button
                   onClick={toggleMenu}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 p-1"
                 >
-                  <XMarkIcon className="w-6 h-6" />
+                  <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Navigation Links */}
-              <nav className="space-y-4 mb-8">
+              <nav className="flex-1 space-y-2">
                 {isLoggedIn && userName && (
                   <div className="py-3 border-b border-gray-200 mb-4">
                     <div className="text-sm text-gray-500">Welcome back</div>
-                    <div className="text-lg font-semibold text-gray-900">{userName}</div>
+                    <div className="text-base font-semibold text-gray-900">{userName}</div>
                   </div>
                 )}
                 
                 <Link 
                   href="/" 
-                  className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   Home
                 </Link>
                 <Link 
                   href="/subscription" 
-                  className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   Pricing
                 </Link>
                 <Link 
                   href="#faq" 
-                  className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   FAQ
@@ -102,21 +102,21 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/dashboard" 
-                      className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Dashboard
                     </Link>
                     <Link 
                       href="/settings" 
-                      className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Settings
                     </Link>
                     <Link 
                       href="/subscription" 
-                      className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Manage Subscription
@@ -126,14 +126,14 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/login" 
-                      className="block py-3 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Login
                     </Link>
                     <Link 
                       href="/signup" 
-                      className="block py-3 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors font-semibold text-center"
+                      className="block py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors font-semibold text-center mt-4"
                       onClick={toggleMenu}
                     >
                       Get Started Free
@@ -143,9 +143,9 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
               </nav>
 
               {/* Contact Information */}
-              <div className="border-t border-gray-200 pt-6">
+              <div className="border-t border-gray-200 pt-4 mt-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact Support</h3>
-                <div className="space-y-3 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center">
                     <span className="mr-2">📧</span>
                     <a 
