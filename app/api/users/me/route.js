@@ -2,12 +2,24 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
 
-// Get current user
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
+
 export async function GET(request) {
   try {
     const user = await getCurrentUser(request);
@@ -19,15 +31,23 @@ export async function GET(request) {
       );
     }
 
-    // Get user data from database
-    const { data: userData, error } = await supabase
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    // Get user details from database
+    const { data: userData, error } = await supabaseClient
       .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
 
     if (error) {
-      console.error('Error fetching user:', error);
+      console.error('Error fetching user data:', error);
       return NextResponse.json(
         { error: 'Failed to fetch user data' },
         { status: 500 }
@@ -90,7 +110,15 @@ export async function PUT(request) {
     }
 
     // Check if email is already taken by another user
-    const { data: existingUser } = await supabase
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    const { data: existingUser } = await supabaseClient
       .from('users')
       .select('id')
       .eq('email', email)
@@ -105,7 +133,7 @@ export async function PUT(request) {
     }
 
     // Update user data
-    const { data: updatedUser, error } = await supabase
+    const { data: updatedUser, error } = await supabaseClient
       .from('users')
       .update({
         name: name.trim(),

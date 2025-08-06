@@ -6,9 +6,12 @@ import {
   CheckIcon, 
   XMarkIcon,
   StarIcon,
-  CreditCardIcon
+  CreditCardIcon,
+  BuildingOfficeIcon,
+  PhoneIcon
 } from '@heroicons/react/24/outline'
 import MobileNav from '@/components/MobileNav'
+import Script from 'next/script'
 
 export default function SubscriptionPage() {
   const handleUpgrade = async (planType: string) => {
@@ -28,7 +31,7 @@ export default function SubscriptionPage() {
       const result = await response.json();
 
       if (result.success) {
-        window.location.href = result.url;
+        window.location.href = result.checkoutUrl;
       } else {
         alert('Failed to create checkout session: ' + result.error);
       }
@@ -39,6 +42,13 @@ export default function SubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* AdSense Script */}
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9467909403537446"
+        crossOrigin="anonymous"
+      />
+      
       {/* Header with Mobile Nav */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,7 +72,7 @@ export default function SubscriptionPage() {
       </header>
 
       <div className="pt-24 pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
@@ -74,7 +84,7 @@ export default function SubscriptionPage() {
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
             {/* Free Plan */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 relative">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -146,9 +156,6 @@ export default function SubscriptionPage() {
                 <div className="text-4xl font-bold text-gray-900 mb-2">
                   £2.99<span className="text-lg text-gray-500">/month</span>
                 </div>
-                <div className="text-sm text-orange-600 mb-4">
-                  or £29.99/year (17% savings)
-                </div>
                 
                 <ul className="space-y-3 mb-8 text-left">
                   <li className="flex items-center">
@@ -194,6 +201,126 @@ export default function SubscriptionPage() {
                 </button>
               </div>
             </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                  <BuildingOfficeIcon className="w-4 h-4 mr-1" />
+                  Enterprise
+                </span>
+              </div>
+              
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  Contact Us
+                </div>
+                
+                <ul className="space-y-3 mb-8 text-left">
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Unlimited vehicles</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>White-label solution</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Custom branding</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>API access</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Dedicated support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Advanced reporting</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Custom integrations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>SLA guarantees</span>
+                  </li>
+                </ul>
+                
+                <a 
+                  href="mailto:info@facsystems.co.uk?subject=Enterprise%20Inquiry"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center mb-4"
+                >
+                  <PhoneIcon className="w-4 h-4 mr-2" />
+                  Contact Sales
+                </a>
+              </div>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 relative">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                  <BuildingOfficeIcon className="w-4 h-4 mr-1" />
+                  Enterprise
+                </span>
+              </div>
+              
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  Contact Us
+                </div>
+                
+                <ul className="space-y-3 mb-8 text-left">
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Unlimited vehicles</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>White-label solution</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Custom branding</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>API access</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Dedicated support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Advanced reporting</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>Custom integrations</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckIcon className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                    <span>SLA guarantees</span>
+                  </li>
+                </ul>
+                
+                <a 
+                  href="mailto:info@facsystems.co.uk?subject=Enterprise%20Inquiry"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center mb-4"
+                >
+                  <PhoneIcon className="w-4 h-4 mr-2" />
+                  Contact Sales
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Features Comparison */}
@@ -209,11 +336,15 @@ export default function SubscriptionPage() {
                     <th className="text-left py-3 px-4 font-semibold text-gray-900">Feature</th>
                     <th className="text-center py-3 px-4 font-semibold text-gray-900">Free</th>
                     <th className="text-center py-3 px-4 font-semibold text-gray-900">Premium</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-900">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
                     <td className="py-3 px-4 text-gray-900">Email Reminders</td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
                     <td className="py-3 px-4 text-center">
                       <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
                     </td>
@@ -229,16 +360,23 @@ export default function SubscriptionPage() {
                     <td className="py-3 px-4 text-center">
                       <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
                     </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-gray-900">Number of Vehicles</td>
                     <td className="py-3 px-4 text-center text-gray-900">1</td>
                     <td className="py-3 px-4 text-center text-gray-900">Up to 3</td>
+                    <td className="py-3 px-4 text-center text-gray-900">Unlimited</td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-gray-900">Ad-Free Experience</td>
                     <td className="py-3 px-4 text-center">
                       <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
                     </td>
                     <td className="py-3 px-4 text-center">
                       <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
@@ -252,6 +390,9 @@ export default function SubscriptionPage() {
                     <td className="py-3 px-4 text-center">
                       <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
                     </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
                   </tr>
                   <tr>
                     <td className="py-3 px-4 text-gray-900">Priority Support</td>
@@ -261,9 +402,15 @@ export default function SubscriptionPage() {
                     <td className="py-3 px-4 text-center">
                       <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
                     </td>
+                    <td className="py-3 px-4 text-center">
+                      <CheckIcon className="w-5 h-5 text-green-500 mx-auto" />
+                    </td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 text-gray-900">Tax & Insurance Reminders</td>
+                    <td className="py-3 px-4 text-gray-900">White-Label</td>
+                    <td className="py-3 px-4 text-center">
+                      <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
+                    </td>
                     <td className="py-3 px-4 text-center">
                       <XMarkIcon className="w-5 h-5 text-gray-400 mx-auto" />
                     </td>
@@ -289,7 +436,7 @@ export default function SubscriptionPage() {
                 </h3>
                 <p className="text-gray-600">
                   The Free tier offers email reminders for one vehicle with partner garage promotions. 
-                  The Premium tier (£2.99/month or £29.99/year) includes SMS and email reminders for 
+                  The Premium tier (£2.99/month) includes SMS and email reminders for 
                   up to 3 vehicles, ad-free, with custom schedules and priority support.
                 </p>
               </div>

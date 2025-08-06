@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://mot-alert.com',
   },
+  icons: {
+    icon: '/images/favicon.jpg',
+  },
 }
 
 export default function RootLayout({

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import Script from 'next/script';
 
 interface FAQItem {
   question: string;
@@ -11,7 +12,7 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     question: "How much does MOT Alert cost for drivers?",
-    answer: "The Free tier offers email reminders for one vehicle with partner garage promotions. The Premium tier (£19.99/year) includes SMS and email reminders for up to 3 vehicles, ad-free, with custom schedules and priority support. Additional vehicles cost £9.99 each."
+    answer: "The Free tier offers email reminders for one vehicle with partner garage promotions. The Premium tier (£2.99/month) includes SMS and email reminders for up to 3 vehicles, ad-free, with custom schedules and priority support. Additional vehicles cost £9.99 each for Premium users."
   },
   {
     question: "What's the difference between Free and Premium tiers?",
@@ -27,11 +28,11 @@ const faqData: FAQItem[] = [
   },
   {
     question: "Can I add multiple vehicles?",
-    answer: "Free users can register 1 vehicle and must upgrade to Premium for more. Premium users can manage up to 3 vehicles with individual reminder schedules for each. Additional vehicles cost £9.99 each."
+    answer: "Free users can register 1 vehicle and must upgrade to Premium for more. Premium users can manage up to 3 vehicles with individual reminder schedules for each. Additional vehicles cost £9.99 each for Premium users."
   },
   {
     question: "What about garage partners?",
-    answer: "Garage partners get the White-Label service for £49.99/month, which includes 5 vehicles free and £4.99 per additional vehicle. This includes custom branding and customer management tools."
+    answer: "Garage partners get the White-Label service for £49.99/month, which includes 100 vehicles free and £2.99 per additional vehicle. This includes custom branding and customer management tools."
   },
   {
     question: "Is my data secure?",
@@ -48,6 +49,13 @@ export default function FAQ() {
 
   return (
     <section className="py-16 bg-gray-50">
+      {/* AdSense Script */}
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9467909403537446"
+        crossOrigin="anonymous"
+      />
+      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12">

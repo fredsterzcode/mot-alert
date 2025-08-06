@@ -2,10 +2,23 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function GET(request, { params }) {
   try {
@@ -20,8 +33,16 @@ export async function GET(request, { params }) {
 
     const subscriptionId = params.id;
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Verify user owns this subscription
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await supabaseClient
       .from('subscriptions')
       .select('*')
       .eq('id', subscriptionId)
@@ -36,7 +57,7 @@ export async function GET(request, { params }) {
     }
 
     // Get addons for this subscription
-    const { data: addons, error: addonsError } = await supabase
+    const { data: addons, error: addonsError } = await supabaseClient
       .from('subscription_addons')
       .select('*')
       .eq('subscription_id', subscriptionId)

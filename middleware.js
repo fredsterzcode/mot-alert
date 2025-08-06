@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+}
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl
@@ -32,8 +45,14 @@ export async function middleware(request) {
   }
 
   try {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      // If Supabase is not configured, continue to main site
+      return NextResponse.next();
+    }
+
     // Query for active partner with this subdomain
-    const { data: partner, error } = await supabase
+    const { data: partner, error } = await supabaseClient
       .from('partners')
       .select('id, name, subdomain, company_name, logo_url, primary_color, secondary_color, is_active')
       .eq('subdomain', subdomain)

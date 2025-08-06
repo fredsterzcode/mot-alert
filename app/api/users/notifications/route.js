@@ -2,12 +2,24 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
 
-// Get user notification preferences
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
+
 export async function GET(request) {
   try {
     const user = await getCurrentUser(request);
@@ -19,46 +31,51 @@ export async function GET(request) {
       );
     }
 
-    // Get user's notification preferences
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('reminder_preferences')
-      .eq('id', user.id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching notification preferences:', error);
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
       return NextResponse.json(
-        { error: 'Failed to fetch notification preferences' },
+        { error: 'Database connection failed' },
         { status: 500 }
       );
     }
 
-    // Return default preferences if none set
-    const preferences = userData.reminder_preferences || {
-      emailNotifications: true,
-      smsNotifications: false,
-      motReminders: true,
-      taxReminders: true,
-      insuranceReminders: true,
-      reminderFrequency: '7,3,1'
-    };
+    // Get user's notification settings
+    const { data: notifications, error } = await supabaseClient
+      .from('user_notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching notifications:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch notification settings' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      preferences
+      notifications: notifications || {
+        user_id: user.id,
+        email_notifications: true,
+        sms_notifications: false,
+        mot_reminders: true,
+        tax_reminders: true,
+        insurance_reminders: true,
+        marketing_emails: false
+      }
     });
 
   } catch (error) {
-    console.error('Get notification preferences error:', error);
+    console.error('Get notifications error:', error);
     return NextResponse.json(
-      { error: 'Failed to get notification preferences' },
+      { error: 'Failed to get notification settings' },
       { status: 500 }
     );
   }
 }
 
-// Update user notification preferences
 export async function PUT(request) {
   try {
     const user = await getCurrentUser(request);
@@ -70,85 +87,59 @@ export async function PUT(request) {
       );
     }
 
-    const {
-      emailNotifications,
-      smsNotifications,
-      motReminders,
-      taxReminders,
-      insuranceReminders,
-      reminderFrequency
+    const { 
+      emailNotifications, 
+      smsNotifications, 
+      motReminders, 
+      taxReminders, 
+      insuranceReminders, 
+      marketingEmails 
     } = await request.json();
 
-    // Validate required fields
-    if (typeof emailNotifications !== 'boolean' || 
-        typeof smsNotifications !== 'boolean' ||
-        typeof motReminders !== 'boolean' ||
-        typeof taxReminders !== 'boolean' ||
-        typeof insuranceReminders !== 'boolean') {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
       return NextResponse.json(
-        { error: 'Invalid notification preferences' },
-        { status: 400 }
+        { error: 'Database connection failed' },
+        { status: 500 }
       );
     }
 
-    // Validate reminder frequency
-    if (!reminderFrequency || typeof reminderFrequency !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid reminder frequency' },
-        { status: 400 }
-      );
-    }
-
-    // Check if user can enable SMS notifications
-    const { data: userData } = await supabase
-      .from('users')
-      .select('is_premium, is_partner')
-      .eq('id', user.id)
+    // Update or create notification settings
+    const { data: notifications, error } = await supabaseClient
+      .from('user_notifications')
+      .upsert({
+        user_id: user.id,
+        email_notifications: emailNotifications,
+        sms_notifications: smsNotifications,
+        mot_reminders: motReminders,
+        tax_reminders: taxReminders,
+        insurance_reminders: insuranceReminders,
+        marketing_emails: marketingEmails,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
+      .select()
       .single();
 
-    if (smsNotifications && !userData.is_premium && !userData.is_partner) {
-      return NextResponse.json(
-        { error: 'SMS notifications require Premium or Partner account' },
-        { status: 400 }
-      );
-    }
-
-    // Update notification preferences
-    const preferences = {
-      emailNotifications,
-      smsNotifications,
-      motReminders,
-      taxReminders,
-      insuranceReminders,
-      reminderFrequency
-    };
-
-    const { error } = await supabase
-      .from('users')
-      .update({
-        reminder_preferences: preferences,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
-
     if (error) {
-      console.error('Error updating notification preferences:', error);
+      console.error('Error updating notifications:', error);
       return NextResponse.json(
-        { error: 'Failed to update notification preferences' },
+        { error: 'Failed to update notification settings' },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Notification preferences updated successfully',
-      preferences
+      message: 'Notification settings updated successfully',
+      notifications
     });
 
   } catch (error) {
-    console.error('Update notification preferences error:', error);
+    console.error('Update notifications error:', error);
     return NextResponse.json(
-      { error: 'Failed to update notification preferences' },
+      { error: 'Failed to update notification settings' },
       { status: 500 }
     );
   }

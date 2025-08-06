@@ -2,33 +2,45 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getUserByEmail, updateUser } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function POST(request) {
   try {
-    const { 
-      name, 
-      email, 
-      phone, 
-      userType = 'individual',
-      companyName,
-      companyDescription,
-      website
-    } = await request.json();
+    const { email, name, phone, userType = 'free' } = await request.json();
 
-    // Validate required fields
-    if (!name || !email) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Name and email are required' },
+        { error: 'Email is required' },
         { status: 400 }
       );
     }
 
-    // Check if email already exists
-    const { data: existingUser } = await supabase
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    // Check if user already exists
+    const { data: existingUser } = await supabaseClient
       .from('users')
       .select('id')
       .eq('email', email)
@@ -36,70 +48,55 @@ export async function POST(request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Email already registered' },
+        { error: 'User already exists' },
         { status: 400 }
       );
     }
 
-    // Check phone number uniqueness (if provided)
-    if (phone) {
-      const { data: existingPhone } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone', phone)
-        .single();
-
-      if (existingPhone) {
-        return NextResponse.json(
-          { error: 'Phone number already registered to another account' },
-          { status: 400 }
-        );
-      }
-    }
-
     // Create user
-    const { data: user, error: userError } = await supabase
+    const { data: user, error } = await supabaseClient
       .from('users')
       .insert({
-        name,
         email,
+        name,
         phone,
-        is_verified: false,
-        is_premium: false,
-        created_at: new Date().toISOString()
+        is_partner: userType === 'partner',
+        is_premium: userType === 'premium',
+        is_verified: false
       })
       .select()
       .single();
 
-    if (userError) {
+    if (error) {
+      console.error('User creation error:', error);
       return NextResponse.json(
-        { error: 'Failed to create user', details: userError.message },
+        { error: 'Failed to create user', details: error.message },
         { status: 500 }
       );
     }
 
-    // If user is a partner, create partner record
-    if (userType === 'partner') {
-      const { error: partnerError } = await supabase
-        .from('partners')
-        .insert({
-          user_id: user.id,
-          name: name,
-          company_name: companyName || name,
-          contact_email: email,
-          phone: phone,
-          company_description: companyDescription,
-          website_url: website,
-          is_active: true,
-          plan_type: 'BASIC',
-          commission_rate: 0.00,
-          created_at: new Date().toISOString()
-        });
+    // Send welcome email
+    try {
+      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: email,
+          userName: name,
+          type: 'welcome',
+          vehicleReg: 'N/A', // Will be set when they add their first vehicle
+          dueDate: new Date().toISOString().split('T')[0]
+        }),
+      });
 
-      if (partnerError) {
-        console.error('Partner creation error:', partnerError);
-        // Don't fail the signup if partner creation fails
+      if (!emailResponse.ok) {
+        console.warn('Welcome email failed to send, but user was created');
       }
+    } catch (emailError) {
+      console.warn('Welcome email error:', emailError);
+      // Don't fail the signup if email fails
     }
 
     return NextResponse.json({
@@ -107,12 +104,11 @@ export async function POST(request) {
       message: 'User created successfully',
       user: {
         id: user.id,
-        name: user.name,
         email: user.email,
+        name: user.name,
         phone: user.phone,
-        isVerified: user.is_verified,
-        isPremium: user.is_premium,
-        isPartner: userType === 'partner'
+        isPartner: user.is_partner,
+        isPremium: user.is_premium
       }
     });
 

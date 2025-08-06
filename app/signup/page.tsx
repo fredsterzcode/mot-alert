@@ -241,11 +241,11 @@ export default function SignupPage() {
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center text-sm text-gray-600">
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      5 vehicles included free
+                      100 vehicles included free
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                      £4.99 per additional vehicle
+                      £2.99 per additional vehicle
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <CheckIcon className="w-4 h-4 text-green-500 mr-2" />

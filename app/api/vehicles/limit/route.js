@@ -1,71 +1,93 @@
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
+    const user = await getCurrentUser(request);
+    
+    if (!user) {
       return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
       );
     }
 
     // Get user's subscription
-    const { data: subscription } = await supabase
+    const { data: subscription } = await supabaseClient
       .from('subscriptions')
-      .select('plan_type, status')
-      .eq('user_id', userId)
+      .select('plan_type')
+      .eq('user_id', user.id)
       .eq('status', 'active')
       .single();
 
-    // Get active vehicle addons
-    const { data: addons } = await supabase
-      .from('subscription_addons')
-      .select('quantity, expires_at')
-      .eq('user_id', userId)
-      .eq('addon_type', 'vehicle')
-      .eq('is_active', true)
-      .gte('expires_at', new Date().toISOString().split('T')[0]);
+    // Get current vehicle count
+    const { count: vehicleCount } = await supabaseClient
+      .from('vehicles')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
-    // Calculate base limit
-    let baseLimit = 1; // Free plan
-    if (subscription?.plan_type === 'PREMIUM') {
-      baseLimit = 3;
+    // Determine limits based on plan
+    let vehicleLimit;
+    let planType = 'FREE';
+
+    if (subscription) {
+      planType = subscription.plan_type;
+      switch (planType) {
+        case 'PREMIUM':
+          vehicleLimit = 3;
+          break;
+        case 'WHITELABEL':
+          vehicleLimit = 100;
+          break;
+        case 'ENTERPRISE':
+          vehicleLimit = 1000;
+          break;
+        default:
+          vehicleLimit = 1;
+      }
+    } else {
+      vehicleLimit = 1; // Free plan
     }
-
-    // Calculate additional vehicles from addons
-    let additionalVehicles = 0;
-    if (addons) {
-      additionalVehicles = addons.reduce((total, addon) => {
-        return total + addon.quantity;
-      }, 0);
-    }
-
-    const totalLimit = baseLimit + additionalVehicles;
 
     return NextResponse.json({
       success: true,
-      limits: {
-        baseLimit,
-        additionalVehicles,
-        totalLimit
-      },
-      subscription: subscription || { plan_type: 'FREE', status: 'active' },
-      addons: addons || []
+      limit: vehicleLimit,
+      current: vehicleCount || 0,
+      remaining: Math.max(0, vehicleLimit - (vehicleCount || 0)),
+      planType
     });
 
   } catch (error) {
-    console.error('Vehicle limit calculation error:', error);
+    console.error('Get vehicle limit error:', error);
     return NextResponse.json(
-      { error: 'Failed to calculate vehicle limit' },
+      { error: 'Failed to get vehicle limit' },
       { status: 500 }
     );
   }

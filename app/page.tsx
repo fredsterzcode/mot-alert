@@ -14,10 +14,18 @@ import {
 } from '@heroicons/react/24/outline'
 import FAQ from '@/components/FAQ'
 import MobileNav from '@/components/MobileNav'
+import Script from 'next/script'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* AdSense Script */}
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9467909403537446"
+        crossOrigin="anonymous"
+      />
+      
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg z-50 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,10 +207,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Premium Plan</h3>
                 <div className="text-4xl font-bold text-white mb-2">
-                  £19.99<span className="text-lg text-orange-100">/year</span>
-                </div>
-                <div className="text-sm text-orange-100 mb-2">
-                  or £1.99/month
+                  £2.99<span className="text-lg text-orange-100">/month</span>
                 </div>
                 <p className="text-orange-100">For serious drivers</p>
               </div>
@@ -234,13 +239,12 @@ export default function HomePage() {
                 </li>
               </ul>
               
-              <button 
+              <Link 
+                href="/subscription"
                 className="w-full bg-white hover:bg-gray-100 text-orange-600 font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 flex items-center justify-center text-lg shadow-lg"
-                disabled
-                title="Coming soon - Backend integration required"
               >
                 Upgrade to Premium
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -315,7 +319,7 @@ export default function HomePage() {
                 <span className="ml-2 text-sm text-gray-500">Verified Customer</span>
               </div>
               <p className="text-gray-700 mb-6 leading-relaxed">
-                "MOT Alert saved me from a £1,000 fine! The reminders are spot on and I never miss my MOT now. Best £19.99 I spend each year."
+                "MOT Alert saved me from a £1,000 fine! The reminders are spot on and I never miss my MOT now. Best £2.99 I spend each month."
               </p>
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold mr-3">

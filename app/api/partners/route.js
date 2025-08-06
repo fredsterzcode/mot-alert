@@ -2,10 +2,23 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 /**
  * Partner Management API Endpoints
@@ -39,8 +52,16 @@ export async function POST(request) {
       );
     }
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Check if subdomain is available
-    const { data: existingPartner } = await supabase
+    const { data: existingPartner } = await supabaseClient
       .from('partners')
       .select('id')
       .eq('subdomain', subdomain)
@@ -54,7 +75,7 @@ export async function POST(request) {
     }
 
     // Create partner
-    const { data: partner, error } = await supabase
+    const { data: partner, error } = await supabaseClient
       .from('partners')
       .insert({
         user_id: user.id,
@@ -113,7 +134,15 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const includeStats = searchParams.get('includeStats') === 'true';
 
-    const { data: partner, error } = await supabase
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    const { data: partner, error } = await supabaseClient
       .from('partners')
       .select('*')
       .eq('user_id', user.id)
@@ -138,13 +167,13 @@ export async function GET(request) {
 
     if (includeStats) {
       // Get partner statistics
-      const { data: customerCount } = await supabase
+      const { data: customerCount } = await supabaseClient
         .from('partner_customers')
         .select('id', { count: 'exact' })
         .eq('partner_id', partner.id)
         .eq('is_active', true);
 
-      const { data: vehicleCount } = await supabase
+      const { data: vehicleCount } = await supabaseClient
         .from('partner_customers')
         .select('id', { count: 'exact' })
         .eq('partner_id', partner.id)
@@ -194,8 +223,16 @@ export async function PUT(request) {
       commissionRate
     } = await request.json();
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Get user's partner
-    const { data: partner, error: partnerError } = await supabase
+    const { data: partner, error: partnerError } = await supabaseClient
       .from('partners')
       .select('id')
       .eq('user_id', user.id)
@@ -209,7 +246,7 @@ export async function PUT(request) {
     }
 
     // Update partner
-    const { data: updatedPartner, error } = await supabase
+    const { data: updatedPartner, error } = await supabaseClient
       .from('partners')
       .update({
         name,

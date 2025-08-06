@@ -42,7 +42,7 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
           />
           
           {/* Menu Panel */}
-          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
             <div className="p-6 h-full flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -78,21 +78,21 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                 
                 <Link 
                   href="/" 
-                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   Home
                 </Link>
                 <Link 
                   href="/subscription" 
-                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   Pricing
                 </Link>
                 <Link 
                   href="#faq" 
-                  className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                   onClick={toggleMenu}
                 >
                   FAQ
@@ -102,21 +102,21 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/dashboard" 
-                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Dashboard
                     </Link>
                     <Link 
                       href="/settings" 
-                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Settings
                     </Link>
                     <Link 
                       href="/subscription" 
-                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Manage Subscription
@@ -126,7 +126,7 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/login" 
-                      className="block py-3 px-2 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
                       onClick={toggleMenu}
                     >
                       Login

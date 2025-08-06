@@ -2,11 +2,40 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Stripe client
+let stripe = null;
+
+const getStripeClient = () => {
+  if (!stripe) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      console.warn('Stripe secret key not configured');
+      return null;
+    }
+    
+    stripe = new Stripe(stripeSecretKey);
+  }
+  return stripe;
+};
+
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function POST(request) {
   try {
@@ -19,10 +48,27 @@ export async function POST(request) {
       );
     }
 
+    const stripeClient = getStripeClient();
+    const supabaseClient = getSupabaseClient();
+    
+    if (!stripeClient) {
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      );
+    }
+    
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Get user details
-    const { data: user } = await supabase
+    const { data: user } = await supabaseClient
       .from('users')
-      .select('email, name, isPartner')
+      .select('email, name, is_partner')
       .eq('id', userId)
       .single();
 
@@ -34,12 +80,12 @@ export async function POST(request) {
     }
 
     // Calculate price based on user type
-    const isPartnerUser = isPartner || user.isPartner;
-    const unitPrice = isPartnerUser ? 499 : 999; // £4.99 for partners, £9.99 for regular users
+    const isPartnerUser = isPartner || user.is_partner;
+    const unitPrice = isPartnerUser ? 299 : 999; // £2.99 for partners, £9.99 for regular users
     const totalAmount = unitPrice * quantity;
 
     // Create Stripe payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await stripeClient.paymentIntents.create({
       amount: totalAmount,
       currency: 'gbp',
       metadata: {
@@ -77,8 +123,25 @@ export async function PUT(request) {
   try {
     const { paymentIntentId, userId, subscriptionId, quantity = 1, isPartner = false, autoRenew = false } = await request.json();
 
+    const stripeClient = getStripeClient();
+    const supabaseClient = getSupabaseClient();
+    
+    if (!stripeClient) {
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      );
+    }
+    
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Verify payment intent
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
     
     if (paymentIntent.status !== 'succeeded') {
       return NextResponse.json(
@@ -92,7 +155,7 @@ export async function PUT(request) {
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
     // Create subscription addon record
-    const { data: addon, error: addonError } = await supabase
+    const { data: addon, error: addonError } = await supabaseClient
       .from('subscription_addons')
       .insert({
         subscription_id: subscriptionId,
@@ -145,8 +208,16 @@ export async function PATCH(request) {
   try {
     const { addonId, autoRenew } = await request.json();
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Update addon auto-renewal setting
-    const { data: addon, error: updateError } = await supabase
+    const { data: addon, error: updateError } = await supabaseClient
       .from('subscription_addons')
       .update({
         auto_renew: autoRenew,

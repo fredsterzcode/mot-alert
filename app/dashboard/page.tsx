@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { loadStripe } from '@stripe/stripe-js'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 

@@ -2,12 +2,24 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Supabase client
+let supabase = null;
 
-// GET - Get user's vehicles
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
+
 export async function GET(request) {
   try {
     const user = await getCurrentUser(request);
@@ -19,26 +31,24 @@ export async function GET(request) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    // Ensure user can only access their own vehicles
-    if (userId !== user.id) {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
+        { error: 'Database connection failed' },
+        { status: 500 }
       );
     }
 
-    const { data: vehicles, error } = await supabase
+    const { data: vehicles, error } = await supabaseClient
       .from('vehicles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Error fetching vehicles:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch vehicles', details: error.message },
+        { error: 'Failed to fetch vehicles' },
         { status: 500 }
       );
     }
@@ -51,13 +61,12 @@ export async function GET(request) {
   } catch (error) {
     console.error('Get vehicles error:', error);
     return NextResponse.json(
-      { error: 'Failed to get vehicles', details: error.message },
+      { error: 'Failed to get vehicles' },
       { status: 500 }
     );
   }
 }
 
-// POST - Add new vehicle
 export async function POST(request) {
   try {
     const user = await getCurrentUser(request);
@@ -69,89 +78,80 @@ export async function POST(request) {
       );
     }
 
-    const { userId, registration } = await request.json();
+    const { 
+      registration, 
+      make, 
+      model, 
+      year, 
+      motDueDate, 
+      taxDueDate, 
+      insuranceDueDate 
+    } = await request.json();
 
-    // Validate input
-    if (!registration || !registration.trim()) {
+    if (!registration) {
       return NextResponse.json(
-        { error: 'Vehicle registration is required' },
+        { error: 'Registration is required' },
         { status: 400 }
       );
     }
 
-    // Ensure user can only add vehicles to their own account
-    if (userId !== user.id) {
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    // Check vehicle limits based on subscription
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('plan_type')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .single();
-
-    const vehicleLimit = subscription?.plan_type === 'PREMIUM' ? 3 : 1;
-
-    // Count existing vehicles
-    const { count: vehicleCount } = await supabase
-      .from('vehicles')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
-    if (vehicleCount >= vehicleLimit) {
-      return NextResponse.json(
-        { error: `You can only add ${vehicleLimit} vehicle${vehicleLimit > 1 ? 's' : ''} on your current plan. Upgrade to Premium for up to 3 vehicles.` },
-        { status: 400 }
+        { error: 'Database connection failed' },
+        { status: 500 }
       );
     }
 
     // Check if vehicle already exists for this user
-    const { data: existingVehicle } = await supabase
+    const { data: existingVehicle } = await supabaseClient
       .from('vehicles')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('registration', registration.toUpperCase())
       .single();
 
     if (existingVehicle) {
       return NextResponse.json(
-        { error: 'Vehicle with this registration already exists in your account' },
+        { error: 'Vehicle with this registration already exists' },
         { status: 400 }
       );
     }
 
-    // Add vehicle
-    const { data: vehicle, error } = await supabase
+    // Create vehicle
+    const { data: vehicle, error } = await supabaseClient
       .from('vehicles')
       .insert({
-        user_id: userId,
+        user_id: user.id,
         registration: registration.toUpperCase(),
-        created_at: new Date().toISOString()
+        make,
+        model,
+        year,
+        mot_due_date: motDueDate,
+        tax_due_date: taxDueDate,
+        insurance_due_date: insuranceDueDate
       })
       .select()
       .single();
 
     if (error) {
+      console.error('Error creating vehicle:', error);
       return NextResponse.json(
-        { error: 'Failed to add vehicle', details: error.message },
+        { error: 'Failed to create vehicle' },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
+      message: 'Vehicle added successfully',
       vehicle
     });
 
   } catch (error) {
-    console.error('Add vehicle error:', error);
+    console.error('Create vehicle error:', error);
     return NextResponse.json(
-      { error: 'Failed to add vehicle', details: error.message },
+      { error: 'Failed to create vehicle' },
       { status: 500 }
     );
   }

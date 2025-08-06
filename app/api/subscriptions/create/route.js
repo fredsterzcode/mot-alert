@@ -118,6 +118,32 @@ export async function POST(request) {
       `${process.env.NEXT_PUBLIC_SITE_URL}/signup?error=payment_cancelled`
     );
 
+    // Send welcome email for new users
+    if (!user.stripe_customer_id) {
+      try {
+        const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: email,
+            userName: name,
+            type: 'welcome',
+            vehicleReg: 'N/A', // Will be set when they add their first vehicle
+            dueDate: new Date().toISOString().split('T')[0]
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          console.warn('Welcome email failed to send, but subscription was created');
+        }
+      } catch (emailError) {
+        console.warn('Welcome email error:', emailError);
+        // Don't fail the signup if email fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       sessionId: session.id,

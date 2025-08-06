@@ -3,11 +3,40 @@ import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of Stripe client
+let stripe = null;
+
+const getStripeClient = () => {
+  if (!stripe) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    
+    if (!stripeSecretKey) {
+      console.warn('Stripe secret key not configured');
+      return null;
+    }
+    
+    stripe = new Stripe(stripeSecretKey);
+  }
+  return stripe;
+};
+
+// Lazy initialization of Supabase client
+let supabase = null;
+
+const getSupabaseClient = () => {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.warn('Supabase environment variables not configured');
+      return null;
+    }
+    
+    supabase = createClient(supabaseUrl, supabaseServiceKey);
+  }
+  return supabase;
+};
 
 export async function POST(request) {
   try {
@@ -29,8 +58,25 @@ export async function POST(request) {
       );
     }
 
+    const stripeClient = getStripeClient();
+    const supabaseClient = getSupabaseClient();
+    
+    if (!stripeClient) {
+      return NextResponse.json(
+        { error: 'Stripe not configured' },
+        { status: 500 }
+      );
+    }
+    
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Ensure user can only cancel their own subscriptions
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: subError } = await supabaseClient
       .from('subscriptions')
       .select('*')
       .eq('id', subscriptionId)
@@ -47,12 +93,12 @@ export async function POST(request) {
     if (cancelType === 'subscription') {
       // Cancel the main subscription
       try {
-        await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+        await stripeClient.subscriptions.update(subscription.stripe_subscription_id, {
           cancel_at_period_end: true
         });
 
         // Update subscription status in database
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseClient
           .from('subscriptions')
           .update({
             status: 'cancelled',
@@ -86,7 +132,7 @@ export async function POST(request) {
         );
       }
 
-      const { data: addon, error: addonError } = await supabase
+      const { data: addon, error: addonError } = await supabaseClient
         .from('subscription_addons')
         .select('*')
         .eq('id', addonId)
@@ -101,7 +147,7 @@ export async function POST(request) {
       }
 
       // Disable auto-renewal for the addon
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseClient
         .from('subscription_addons')
         .update({
           auto_renew: false,
@@ -160,15 +206,23 @@ export async function GET(request) {
       );
     }
 
+    const supabaseClient = getSupabaseClient();
+    if (!supabaseClient) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
     // Get subscription and addons
-    const { data: subscription } = await supabase
+    const { data: subscription } = await supabaseClient
       .from('subscriptions')
       .select('*')
       .eq('id', subscriptionId)
       .eq('user_id', user.id)
       .single();
 
-    const { data: addons } = await supabase
+    const { data: addons } = await supabaseClient
       .from('subscription_addons')
       .select('*')
       .eq('subscription_id', subscriptionId)
