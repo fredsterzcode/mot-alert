@@ -1,6 +1,12 @@
 -- Fix user permissions by updating the handle_new_user function
 -- This ensures free users get free features, premium users get premium features, etc.
 
+-- First, add the missing is_partner column if it doesn't exist
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_partner BOOLEAN DEFAULT false;
+
+-- Drop the existing trigger first (since it depends on the function)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
 -- Drop the existing function if it exists
 DROP FUNCTION IF EXISTS public.handle_new_user();
 
@@ -39,9 +45,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Drop the existing trigger if it exists
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Create the trigger
 CREATE TRIGGER on_auth_user_created
