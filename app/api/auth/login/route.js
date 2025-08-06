@@ -23,6 +23,8 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
+    console.log('Login attempt for:', email);
+
     // Validate email
     if (!email || !email.includes('@')) {
       return NextResponse.json(
@@ -53,6 +55,8 @@ export async function POST(request) {
       password
     });
 
+    console.log('Auth response:', { authData: authData ? 'success' : 'failed', authError });
+
     if (authError) {
       console.error('Auth login error:', authError);
       return NextResponse.json(
@@ -75,6 +79,8 @@ export async function POST(request) {
       .eq('id', authData.user.id)
       .single();
 
+    console.log('User data:', { userData, userError });
+
     if (userError) {
       console.error('Error getting user data:', userError);
       return NextResponse.json(
@@ -90,6 +96,8 @@ export async function POST(request) {
       .eq('user_id', authData.user.id)
       .eq('is_active', true)
       .single();
+
+    console.log('Partner data:', partner);
 
     return NextResponse.json({
       success: true,

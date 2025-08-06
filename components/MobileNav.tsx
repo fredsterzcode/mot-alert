@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline'
@@ -13,6 +13,35 @@ interface MobileNavProps {
 export default function MobileNav({ isLoggedIn = false, userName }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false)
 
+  // Close menu when clicking outside or pressing escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+      }
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Element
+      if (isOpen && !target.closest('.mobile-menu-panel') && !target.closest('.mobile-menu-button')) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.addEventListener('click', handleClickOutside)
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('click', handleClickOutside)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
+
   const toggleMenu = () => {
     setIsOpen(!isOpen)
   }
@@ -22,8 +51,9 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="text-gray-700 p-2 hover:text-orange-600 transition-colors"
+        className="mobile-menu-button text-gray-700 p-2 hover:text-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 rounded-lg"
         aria-label="Toggle menu"
+        aria-expanded={isOpen}
       >
         {isOpen ? (
           <XMarkIcon className="w-6 h-6" />
@@ -39,10 +69,11 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
           <div 
             className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={toggleMenu}
+            aria-hidden="true"
           />
           
           {/* Menu Panel */}
-          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
+          <div className="mobile-menu-panel absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
             <div className="p-6 h-full flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
@@ -61,14 +92,15 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                 </div>
                 <button
                   onClick={toggleMenu}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  className="text-gray-400 hover:text-gray-600 p-1 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 rounded-lg"
+                  aria-label="Close menu"
                 >
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Navigation Links */}
-              <nav className="flex-1 space-y-2">
+              <nav className="flex-1 space-y-2" role="navigation">
                 {isLoggedIn && userName && (
                   <div className="py-3 border-b border-gray-200 mb-4">
                     <div className="text-sm text-gray-500">Welcome back</div>
@@ -78,21 +110,21 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                 
                 <Link 
                   href="/" 
-                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                   onClick={toggleMenu}
                 >
                   Home
                 </Link>
                 <Link 
                   href="/subscription" 
-                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                   onClick={toggleMenu}
                 >
                   Pricing
                 </Link>
                 <Link 
                   href="#faq" 
-                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                  className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                   onClick={toggleMenu}
                 >
                   FAQ
@@ -102,21 +134,21 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/dashboard" 
-                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                       onClick={toggleMenu}
                     >
                       Dashboard
                     </Link>
                     <Link 
                       href="/settings" 
-                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                       onClick={toggleMenu}
                     >
                       Settings
                     </Link>
                     <Link 
                       href="/subscription" 
-                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                       onClick={toggleMenu}
                     >
                       Manage Subscription
@@ -126,14 +158,14 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                   <>
                     <Link 
                       href="/login" 
-                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+                      className="block py-3 px-4 text-gray-700 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset"
                       onClick={toggleMenu}
                     >
                       Login
                     </Link>
                     <Link 
                       href="/signup" 
-                      className="block py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors font-semibold text-center mt-4"
+                      className="block py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors font-semibold text-center mt-4 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
                       onClick={toggleMenu}
                     >
                       Get Started Free
@@ -150,7 +182,7 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                     <span className="mr-2">📧</span>
                     <a 
                       href="mailto:info@facsystems.co.uk" 
-                      className="hover:text-orange-600 transition-colors"
+                      className="hover:text-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset rounded"
                     >
                       info@facsystems.co.uk
                     </a>
@@ -159,7 +191,7 @@ export default function MobileNav({ isLoggedIn = false, userName }: MobileNavPro
                     <span className="mr-2">📱</span>
                     <a 
                       href="tel:+03333220408" 
-                      className="hover:text-orange-600 transition-colors"
+                      className="hover:text-orange-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-inset rounded"
                     >
                       +0333 322 0408
                     </a>

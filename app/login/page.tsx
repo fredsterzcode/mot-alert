@@ -35,6 +35,7 @@ export default function LoginPage() {
   })
 
   const onSubmit = async (data: LoginForm) => {
+    console.log('Login form submitted:', { email: data.email, password: data.password ? 'provided' : 'missing' })
     setIsLoading(true)
     setError('')
     
@@ -49,8 +50,10 @@ export default function LoginPage() {
       })
 
       const result = await response.json()
+      console.log('Login API response:', result)
 
       if (result.success) {
+        console.log('Login successful, redirecting to:', result.user.isPartner ? '/partner' : '/dashboard')
         // Check if user is a partner
         if (result.user.isPartner) {
           window.location.href = '/partner'
@@ -58,9 +61,11 @@ export default function LoginPage() {
           window.location.href = '/dashboard'
         }
       } else {
+        console.log('Login failed:', result.error)
         setError(result.error || 'Login failed')
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('Invalid email or password')
     } finally {
       setIsLoading(false)
@@ -165,9 +170,9 @@ export default function LoginPage() {
                     Remember me
                   </label>
                 </div>
-                <Link href="/forgot-password" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
-                  Forgot password?
-                </Link>
+                <div className="text-sm text-gray-500">
+                  Contact support for password help
+                </div>
               </div>
 
               <button

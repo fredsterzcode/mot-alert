@@ -51,6 +51,27 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Create a function to handle email verification updates
+CREATE OR REPLACE FUNCTION public.handle_email_verification()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Update the public.users table when email is confirmed
+  UPDATE public.users 
+  SET 
+    is_verified = NEW.email_confirmed_at IS NOT NULL,
+    updated_at = NOW()
+  WHERE id = NEW.id;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger for email verification updates
+DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
+CREATE TRIGGER on_auth_user_updated
+  AFTER UPDATE ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_email_verification();
+
 -- Update existing users to have correct permissions
 -- This will fix any users that were created before this fix
 
@@ -79,6 +100,14 @@ WHERE id IN (
   OR raw_user_meta_data->>'user_type' IS NULL
 );
 
+-- Fix existing verified users
+UPDATE public.users 
+SET is_verified = true
+WHERE id IN (
+  SELECT id FROM auth.users 
+  WHERE email_confirmed_at IS NOT NULL
+);
+
 -- Verify the changes
 SELECT 
   u.id,
@@ -86,7 +115,9 @@ SELECT
   u.name,
   u.is_premium,
   u.is_partner,
-  au.raw_user_meta_data->>'user_type' as auth_user_type
+  u.is_verified,
+  au.raw_user_meta_data->>'user_type' as auth_user_type,
+  au.email_confirmed_at
 FROM public.users u
 JOIN auth.users au ON u.id = au.id
 ORDER BY u.created_at DESC
